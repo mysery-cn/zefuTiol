@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.AuthMeetingTypeMapper">
+
+	<select id="queryAuthMeetingTypeTree" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.TYPE_ID as "navId",m.TYPE_CODE as "navCode",m.TYPE_NAME as "navName" from biz_tiol_meeting_type m
+	</select>
+
+	<select id="queryAuthMeetingTypeList" parameterType="java.util.Map" resultType="java.util.Map">
+		select 
+			c.RELATION_TYPE as "relationType",
+			u.USER_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left JOIN 
+			T_UMS_MGR_USER u on c.RELATION_ID=u.user_id 
+		where 
+			c.RELATION_TYPE='1' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			r.ROLE_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ROLE r on c.RELATION_ID=r.role_id 
+		where 
+			c.RELATION_TYPE='2' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			o.org_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ORG o on c.RELATION_ID=o.org_id 
+		where 
+			c.RELATION_TYPE='3' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+	</select>
+	
+	<select id="queryAuthMeetingTypeListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select a.*,rownum rn from (
+		select b.*,rownum num from
+		(select 
+			c.RELATION_TYPE as "relationType",
+			u.USER_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left JOIN 
+			T_UMS_MGR_USER u on c.RELATION_ID=u.user_id 
+		where 
+			c.RELATION_TYPE='1' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			r.ROLE_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ROLE r on c.RELATION_ID=r.role_id 
+		where 
+			c.RELATION_TYPE='2' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			o.ORG_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ORG o on c.RELATION_ID=o.org_id 
+		where 
+			c.RELATION_TYPE='3' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		) b) a
+		where num &gt; #{minRow, jdbcType=INTEGER} and num &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="queryAuthMeetingTypeListByPageCount" parameterType="java.util.Map" resultType="Integer">
+		SELECT count(*)
+			FROM (select 
+			c.RELATION_TYPE as "relationType",
+			u.USER_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left JOIN 
+			T_UMS_MGR_USER u on c.RELATION_ID=u.user_id 
+		where 
+			c.RELATION_TYPE='1' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			r.ROLE_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ROLE r on c.RELATION_ID=r.role_id 
+		where 
+			c.RELATION_TYPE='2' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		UNION
+		select 
+			c.RELATION_TYPE as "relationType",
+			o.ORG_NAME as "relationName" 
+		FROM 
+			TIOL_AUTH_MEETING_TYPE c
+		left join 
+			T_UMS_MGR_ORG o on c.RELATION_ID=o.org_id 
+		where 
+			c.RELATION_TYPE='3' 
+			<if test="typeId != null and typeId != ''">
+				and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		)
+	</select>
+	
+	<insert id="saveAuthMeetingType" parameterType="java.util.Map">
+		insert into TIOL_AUTH_MEETING_TYPE
+		(AUTH_ID,TYPE_ID,RELATION_TYPE,RELATION_ID)
+		values
+		(#{AUTH_ID,jdbcType=VARCHAR},#{TYPE_ID,jdbcType=VARCHAR},#{RELATION_TYPE,jdbcType=VARCHAR},#{RELATION_ID,jdbcType=VARCHAR})
+	</insert>
+	
+	<delete id="deleteAuthMeetingType" parameterType="java.util.Map">
+		delete from TIOL_AUTH_MEETING_TYPE where TYPE_ID = #{cid,jdbcType=VARCHAR}
+	</delete>
+	
+	<select id="reloadFormUser" parameterType="java.util.Map" resultType="java.util.Map">
+		select u.USER_ID as "userId",u.USER_NAME as "userName" FROM TIOL_AUTH_MEETING_TYPE c 
+		LEFT JOIN T_UMS_MGR_USER u on c.RELATION_ID = u.USER_ID
+		WHERE c.RELATION_TYPE = '1'
+		<if test="typeId != null and typeId != ''">
+			and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="reloadFormRole" parameterType="java.util.Map" resultType="java.util.Map">
+		select u.ROLE_ID as "roleId",u.ROLE_NAME as "roleName" FROM TIOL_AUTH_MEETING_TYPE c 
+		LEFT JOIN T_UMS_MGR_ROLE u on c.RELATION_ID = u.ROLE_ID
+		WHERE c.RELATION_TYPE = '2'
+		<if test="typeId != null and typeId != ''">
+			and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="reloadFormOrg" parameterType="java.util.Map" resultType="java.util.Map">
+		select u.ORG_ID as "orgId",u.ORG_NAME as "orgName" FROM TIOL_AUTH_MEETING_TYPE c 
+		LEFT JOIN T_UMS_MGR_ORG u on c.RELATION_ID = u.ORG_ID
+		WHERE c.RELATION_TYPE = '3'
+		<if test="typeId != null and typeId != ''">
+			and c.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="getPermit" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT c.TYPE_ID from TIOL_AUTH_MEETING_TYPE c where c.RELATION_TYPE = '1' 
+		<if test="userId != null and userId != ''">
+			and c.RELATION_ID = #{userId, jdbcType=VARCHAR}
+		</if>
+		UNION
+		SELECT c.TYPE_ID from TIOL_AUTH_MEETING_TYPE c where c.RELATION_TYPE = '2'
+		<if test="roleIds!=null and roleIds.size() > 0">
+			and c.RELATION_ID in (
+			<foreach item="value" collection="roleIds" separator=","
+				index="index">
+				'${value}'
+			</foreach>
+			)
+		</if>
+		UNION
+		SELECT c.TYPE_ID from TIOL_AUTH_MEETING_TYPE c where c.RELATION_TYPE = '3' 
+		<if test="orgIds!=null and orgIds.size() > 0">
+			and c.RELATION_ID in (
+			<foreach item="value" collection="orgIds" separator=","
+				index="index">
+				'${value}'
+			</foreach>
+			)
+		</if>
+	</select>
+	<!--根据主键查询会议类型-->
+	<select id="getMeetingTypeById" parameterType="java.lang.String" resultType="map">
+		select TYPE_ID,TYPE_CODE,
+			TYPE_NAME,GROUP_TYPE,REGULATION_TYPE_ID
+		from BIZ_TIOL_MEETING_TYPE
+		where STATUS='1'
+		and TYPE_ID = #{typeId, jdbcType=VARCHAR}
+	</select>
+</mapper>

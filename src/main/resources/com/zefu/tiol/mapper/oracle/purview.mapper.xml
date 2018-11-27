@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.PurviewMapper">
+
+	<select id="queryPurviewList" parameterType="java.util.Map" resultType="java.util.Map">
+		select p.* FROM TIOL_PURVIEW p
+	</select>
+	
+	<select id="queryPurviewById" parameterType="java.lang.String" resultType="java.util.Map">
+		select p.* FROM TIOL_PURVIEW p where p.PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPurviewByParam" parameterType="java.lang.String" resultType="java.lang.String">
+		select p.PURVIEW_ID as "purviewId" FROM TIOL_PURVIEW p where p.PURVIEW_TYPE = #{purviewType,jdbcType=VARCHAR} and instr(p.PURVIEW_OBJECT, #{purviewObject,jdbcType=VARCHAR}) > 0
+	</select>
+	
+	<select id="queryPurviewCatalogListById" parameterType="java.lang.String" resultType="java.util.Map">
+		select CATALOG_ID FROM TIOL_PURVIEW_CATALOG where PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPurviewMeetingTypeListById" parameterType="java.lang.String" resultType="java.util.Map">
+		select TYPE_ID FROM TIOL_PURVIEW_MEETING_TYPE where PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPurviewCompanyListById" parameterType="java.lang.String" resultType="java.util.Map">
+		select c.COMPANY_ID,y.COMPANY_SHORT_NAME FROM TIOL_PURVIEW_COMPANY c
+		left join T_UMS_MGR_COMPANY y on c.COMPANY_ID = Y.COMPANY_ID
+		where c.PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPurviewListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select a.*,rownum rn from 
+			(select p.*,rownum num FROM TIOL_PURVIEW p) a
+		where num &gt; #{minRow, jdbcType=INTEGER} and num &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="queryPurviewListByPageCount" parameterType="java.util.Map" resultType="Integer">
+		SELECT count(*) FROM TIOL_PURVIEW p
+	</select>
+	
+	<insert id="savePurview" parameterType="java.util.Map">
+		insert into TIOL_PURVIEW
+			(PURVIEW_ID,PURVIEW_TYPE,PURVIEW_OBJECT,OBJECT_NAME,START_TIME,END_TIME,STATUS,CREATE_TIME,CREATE_USER)
+		values
+			(#{PURVIEW_ID,jdbcType=VARCHAR},#{PURVIEW_TYPE,jdbcType=VARCHAR},#{PURVIEW_OBJECT,jdbcType=VARCHAR},#{OBJECT_NAME,jdbcType=VARCHAR},
+			#{START_TIME,jdbcType=VARCHAR},#{END_TIME,jdbcType=VARCHAR},#{STATUS,jdbcType=VARCHAR},sysdate,#{CREATE_USER,jdbcType=VARCHAR})
+	</insert>
+	
+	<insert id="savePurviewCatalog" parameterType="java.util.Map">
+		insert into TIOL_PURVIEW_CATALOG
+			(PURVIEW_ID,CATALOG_ID)
+		values
+			(#{PURVIEW_ID,jdbcType=VARCHAR},#{CATALOG_ID,jdbcType=VARCHAR})
+	</insert>
+	
+	<insert id="savePurviewMeetingType" parameterType="java.util.Map">
+		insert into TIOL_PURVIEW_MEETING_TYPE
+			(PURVIEW_ID,TYPE_ID)
+		values
+			(#{PURVIEW_ID,jdbcType=VARCHAR},#{TYPE_ID,jdbcType=VARCHAR})
+	</insert>
+	
+	<insert id="savePurviewCompany" parameterType="java.util.Map">
+		insert into TIOL_PURVIEW_COMPANY
+			(PURVIEW_ID,COMPANY_ID)
+		values
+			(#{PURVIEW_ID,jdbcType=VARCHAR},#{COMPANY_ID,jdbcType=VARCHAR})
+	</insert>
+	
+	<update id="updatePurview" parameterType="java.util.Map">
+		update TIOL_PURVIEW 
+		set PURVIEW_TYPE = #{PURVIEW_TYPE,jdbcType=VARCHAR},PURVIEW_OBJECT = #{PURVIEW_OBJECT,jdbcType=VARCHAR},
+		OBJECT_NAME = #{OBJECT_NAME,jdbcType=VARCHAR},
+		START_TIME = #{START_TIME,jdbcType=VARCHAR},END_TIME = #{END_TIME,jdbcType=VARCHAR},
+		UPDATE_TIME = sysdate,UPDATE_USER = #{UPDATE_USER,jdbcType=VARCHAR}
+		where PURVIEW_ID = #{PURVIEW_ID,jdbcType=VARCHAR}
+	</update>
+	
+	<delete id="detePurviewCatalog" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_CATALOG where PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</delete>
+
+    <delete id="detePurviewMeetingType" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_MEETING_TYPE where PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</delete>
+
+    <delete id="detePurviewCompany" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_COMPANY where PURVIEW_ID = #{purviewId,jdbcType=VARCHAR}
+	</delete>
+	
+	<delete id="deletePurview" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW where PURVIEW_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deletePurviewCatalog" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_CATALOG where PURVIEW_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deletePurviewMeetingType" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_MEETING_TYPE where PURVIEW_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deletePurviewCompany" parameterType="java.util.Map">
+		delete from TIOL_PURVIEW_COMPANY where PURVIEW_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="queryPurviewCatalogListByIds" parameterType="java.util.Map" resultType="java.util.Map">
+		select CATALOG_ID FROM TIOL_PURVIEW_CATALOG where PURVIEW_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	
+	<select id="queryPurviewMeetingTypeListByIds" parameterType="java.util.Map" resultType="java.util.Map">
+		select TYPE_ID FROM TIOL_PURVIEW_MEETING_TYPE where PURVIEW_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	
+	<select id="queryPurviewCompanyListByIds" parameterType="java.util.Map" resultType="java.util.Map">
+		select c.COMPANY_ID,y.COMPANY_SHORT_NAME FROM TIOL_PURVIEW_COMPANY c
+		left join T_UMS_MGR_COMPANY y on c.COMPANY_ID = Y.COMPANY_ID
+		where c.PURVIEW_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	
+	<select id="listPurviewPerson" parameterType="java.util.Map" resultType="java.util.Map">
+		select purview_object as "purviewObject",object_name as "objectName" from TIOL_PURVIEW t,TIOL_PURVIEW_COMPANY tc,TIOL_PURVIEW_CATALOG tp,TIOL_PURVIEW_MEETING_TYPE mt
+		where tc.purview_id=t.purview_id and tp.purview_id=t.purview_id and mt.purview_id=t.purview_id and t.status='1'
+		 and sysdate between to_date(t.start_time)and to_date(t.end_time)
+		<if test="companyId !=null and companyId !=''">
+		    and tc.company_id=#{companyId,jdbcType=VARCHAR}
+		</if>
+		<if test="catalogIds !=null and catalogIds !=''">
+		    and tp.catalog_id in
+		    <foreach collection="catalogIds" index="index" item="item" open="(" separator="," close=")">
+			    #{item}
+		    </foreach>
+		</if>
+		<if test="catalogId !=null and catalogId !=''">
+		    and tp.catalog_id=#{catalogId,jdbcType=VARCHAR}
+		</if>
+		<if test="typeId !=null and typeId !=''">
+		    and mt.type_id=#{typeId,jdbcType=VARCHAR}
+		</if>
+		<if test="purviewType !=null and purviewType !=''">
+		    and t.purview_type=#{purviewType,jdbcType=VARCHAR}
+		</if>
+	</select>
+</mapper>

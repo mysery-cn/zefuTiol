@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.StatisticsRegulationMapper">
+
+	<resultMap id="statistics"
+		type="com.zefu.tiol.pojo.StatisticsRegulation">
+		<result column="STATISTICS_ID" property="statisticsId"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="INDUSTRY_ID" property="industryId"
+			jdbcType="VARCHAR" />
+		<result column="TYPE_ID" property="typeId" jdbcType="VARCHAR" />
+		<result column="TYPE_NAME" property="typeName"
+			jdbcType="VARCHAR" />
+		<result column="QUANTITY" property="quantity"
+			jdbcType="INTEGER" />
+		<result column="COMPANY_QUANTITY" property="companyQuantity"
+			jdbcType="INTEGER" />
+		<result column="STATISTICS_TIME" property="statisticsTime"
+			jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<resultMap id="statisticsVo"
+		type="com.zefu.tiol.pojo.StatisticsRegulationVo" extends="statistics">
+		<result column="COMPANY_NAME" property="companyName"
+			jdbcType="VARCHAR" />
+		<result column="INDUSTRY_NAME" property="industryName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryListByType" parameterType="String"
+		resultMap="statistics">
+		SELECT
+		TYPE_ID,TYPE_NAME,
+		SUM(QUANTITY)QUANTITY
+		FROM
+		tiol_statistics_regulation
+		<if test="industryId != null and industryId != ''">
+			WHERE INDUSTRY_ID = #{industryId, jdbcType=VARCHAR}
+		</if>
+		GROUP BY TYPE_ID,TYPE_NAME
+	</select>
+	
+	<select id="queryListByCompanyId" parameterType="String"
+		resultMap="statistics">
+		SELECT
+		TYPE_ID,TYPE_NAME,
+		SUM(QUANTITY)QUANTITY
+		FROM
+		tiol_statistics_regulation
+		<if test="companyId != null and companyId != ''">
+			WHERE COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+		</if>
+		GROUP BY TYPE_ID,TYPE_NAME
+	</select>
+	
+	
+	<select id="queryRegulationConstructionDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select rt.type_name as "name",
+		sum(nvl(sr.quantity,0)) as "Y",rt.ORDER_NUMBER,
+		((select count(COMPANY_ID) from t_ums_mgr_company where inst_id != 'ROOT')-sum(nvl(sr.quantity,0))) as "F" 
+		from BIZ_TIOL_REGULATION_TYPE rt
+		left join tiol_statistics_regulation sr on rt.type_id = sr.type_id
+		group by rt.type_id,rt.type_name,rt.ORDER_NUMBER
+		order by rt.ORDER_NUMBER desc
+	</select>
+	
+	<select id="listStatisticsRegulation" resultMap="statisticsVo">
+		SELECT 
+		STATISTICS_ID,COMPANY_ID,INDUSTRY_ID,TYPE_ID,TYPE_NAME,QUANTITY,STATISTICS_TIME,
+		(select inst_name from t_ums_mgr_inst where inst_id=t.INDUSTRY_ID) INDUSTRY_NAME,
+		(select company_short_name from t_ums_mgr_company where company_id=t.company_id) COMPANY_NAME
+		FROM
+		tiol_statistics_regulation t
+	</select>
+	
+	<select id="listStatisticsCpyRegulation" resultType="java.util.Map">
+		SELECT 
+		STATISTICS_ID as "statisticsId",company_id as "companyId",TYPE_NAME as "typeName",
+		decode(ISUPLOAD,'0','否','是') as "isUpload",STATISTICS_TIME as "statisticsTime",
+		(select company_short_name from t_ums_mgr_company where company_id=t.company_id) as "companyName"
+		FROM
+		tiol_statistics_cpy_regulation t
+	</select>
+	
+</mapper>
+	

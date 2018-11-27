@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.LeaderRegulationMapper">
+
+	<resultMap id="statistics"
+		type="com.zefu.tiol.pojo.RegulationVo">
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_NAME" property="companyName"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_SHORT_NAME" property="companyShortName"
+			jdbcType="VARCHAR" />
+			<result column="RN" property="rn"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryCompanyList" parameterType="java.util.Map" resultMap="statistics">
+	select * from (
+		Select 
+			u.* ,ROWNUM RN
+		from (
+			select 
+				t.COMPANY_ID,
+				t.COMPANY_NAME,
+				t.COMPANY_SHORT_NAME,
+				t.display_order
+			from
+				T_UMS_MGR_COMPANY t 
+			where 
+				t.inst_id != 'ROOT'
+				<if test="companyName != null and companyName != ''">
+	    			and (
+	    				t.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+	    				or t.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+	    				)
+				</if>
+			order by 
+				t.display_order) u)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="getTotalCount" resultType="Integer">
+		Select count(*) FROM T_UMS_MGR_COMPANY t
+		where 
+			t.inst_id != 'ROOT'
+			<if test="companyName != null and companyName != ''">
+    			and (
+    				t.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+    				or t.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+    				)
+			</if>
+	</select>
+	
+	<select id="queryRegulationListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+	select m.* from
+		(select
+				r.regulation_name,
+				r.regulation_id  ,
+		        t.type_name      ,
+		        r.approval_date  ,
+		        r.effective_date ,
+		        r.audit_flag     ,
+		        a.FILE_NAME,
+		        r.file_id,
+		        rownum
+		from
+		        biz_tiol_regulation r
+		left join biz_tiol_regulation_type t
+		on
+		        r.type_id = t.type_id
+		left join T_FILESYS_FILES a
+		on
+		        a.file_id = r.file_id
+        <where>
+        	r.STATUS = '1'
+			<if test="companyId != null and companyId != ''">
+				and r.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="regulationName != null and regulationName != ''">
+				and r.regulation_name like '%' || #{regulationName, jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="regulationType != null and regulationType != ''">
+				and r.TYPE_ID = #{regulationType, jdbcType=VARCHAR}
+			</if>
+		</where>
+		order by t.ORDER_NUMBER,r.EFFECTIVE_DATE
+        ) m
+	where 
+			rownum &gt; #{minRow, jdbcType=INTEGER} 
+		and 
+			rownum &lt;=#{maxRow,jdbcType=INTEGER}   
+	</select>
+
+	<select id="getRegulationListTotalCount" parameterType="String" resultType="Integer">
+		Select count(*) total FROM (select
+		        t.type_name      ,
+		        r.approval_date  ,
+		        r.effective_date ,
+		        r.audit_flag     ,
+		        a.ATTACHMENT_NAME,
+		        r.file_id
+		from
+		        biz_tiol_regulation r
+		left join biz_tiol_regulation_type t
+		on
+		        r.type_id = t.type_id
+		left join tiol_attachment a
+		on
+		        a.file_id = r.file_id
+        <where>
+        	r.STATUS = '1'
+			<if test="companyId != null and companyId != ''">
+				and r.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="regulationName != null and regulationName != ''">
+				and r.regulation_name like '%' || #{regulationName, jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="regulationType != null and regulationType != ''">
+				and r.TYPE_ID = #{regulationName, jdbcType=VARCHAR}
+			</if>
+		</where>
+        ) m
+		
+	</select>
+	
+	<select id="queryRegulationByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.* from (
+			select p.*,rownum rn
+ 			 from (select distinct c.company_id, c.company_short_name, c.DISPLAY_ORDER,
+			<foreach collection="typelist" separator="," item="item" index="index">
+				'${item.TYPE_ID}' as "typeId${index}",
+				'${item.TYPE_NAME}' as "typeName${index}",
+                '${item.UPLOAD_FLAG}' as "uploadFlag${index}",
+	            (select count(*) from tiol_statistics_regulation m 
+	            where m.company_id = t.company_id 
+	            and m.type_id = #{item.TYPE_ID,jdbcType=VARCHAR}) as "typeCode${index}"
+            </foreach>
+  			 from t_ums_mgr_company c
+             left join tiol_statistics_regulation t on c.company_id = t.company_id
+             where c.inst_id != 'ROOT'
+             <if test="companyName != null and companyName != ''">
+				and c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			 </if>
+			 order by DISPLAY_ORDER asc
+			) p) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getRegulationTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select 
+			count(c.COMPANY_ID)
+        from t_ums_mgr_company c
+        where c.inst_id != 'ROOT'
+            <if test="companyName != null and companyName != ''">
+                and c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+            </if>
+	</select>
+	
+	<select id="queryList" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_regulation_type t order by order_number asc
+	</select>
+	
+	<select id="queryRegulationByType" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from(
+		select n.*,rownum rn from(
+		select
+				r.company_id,
+				c.company_short_name,
+				r.regulation_name,
+				r.regulation_id  ,
+		        t.type_name      ,
+		        r.approval_date  ,
+		        r.effective_date ,
+		        r.audit_flag     ,
+		        a.FILE_NAME,
+		        r.file_id
+		from
+		        biz_tiol_regulation r
+		left join biz_tiol_regulation_type t
+		on
+		        r.type_id = t.type_id
+		left join T_FILESYS_FILES a
+		on
+		        a.file_id = r.file_id
+		left join t_ums_mgr_company c
+		on r.company_id = c.company_id
+		<where>
+        	r.STATUS = '1' and c.inst_level = '2' and t.type_name is not null
+			<if test="companyId != null and companyId != ''">
+				and r.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and c.company_short_name like '%' || #{companyName, jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="typeCode != null and typeCode != ''">
+				and t.TYPE_CODE = #{typeCode, jdbcType=VARCHAR}
+			</if>
+			<if test="typeId != null and typeId != ''">
+				and r.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		</where>
+		order by t.ORDER_NUMBER,r.EFFECTIVE_DATE
+		)n ) m
+		where 
+				rn &gt; #{minRow, jdbcType=INTEGER} 
+			and 
+				rn &lt;=#{maxRow,jdbcType=INTEGER}   
+	</select>
+	
+	<select id="queryRegulationByTypeCount" parameterType="java.util.Map" resultType="Integer">
+		select
+				count(*)
+		from
+		        biz_tiol_regulation r
+		left join biz_tiol_regulation_type t
+		on
+		        r.type_id = t.type_id
+		left join T_FILESYS_FILES a
+		on
+		        a.file_id = r.file_id
+		left join t_ums_mgr_company c
+		on r.company_id = c.company_id
+		<where>
+        	r.STATUS = '1' and c.inst_level = '2' and t.type_name is not null
+			<if test="companyId != null and companyId != ''">
+				and r.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and c.company_short_name like '%' || #{companyName, jdbcType=VARCHAR} || '%'
+			</if>
+			<if test="typeCode != null and typeCode != ''">
+				and t.TYPE_CODE = #{typeCode, jdbcType=VARCHAR}
+			</if>
+			<if test="typeId != null and typeId != ''">
+				and r.TYPE_ID = #{typeId, jdbcType=VARCHAR}
+			</if>
+		</where>
+		order by t.ORDER_NUMBER,r.EFFECTIVE_DATE
+	</select>
+</mapper>
+	

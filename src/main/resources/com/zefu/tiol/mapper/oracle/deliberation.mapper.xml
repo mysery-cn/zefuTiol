@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.DeliberationMapper">
+	<!--批量插入审议结果-->
+	<insert id="batchInsertDeliberation" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="deliberation" index="index">
+			insert into tiol_deliberation(
+			DELIBERATION_ID,DELIBERATION_PERSONNEL,DELIBERATION_RESULT,MEETING_ID,SUBJECT_ID) values(
+			#{deliberation.deliberationId,jdbcType=VARCHAR},
+			#{deliberation.deliberationPersonnel,jdbcType=VARCHAR},
+			#{deliberation.deliberationResult,jdbcType=VARCHAR},
+			#{deliberation.meetingId,jdbcType=VARCHAR},
+			#{deliberation.subjectId,jdbcType=VARCHAR}
+			);
+		</foreach>
+		end;
+	</insert>
+
+	<select id="getDeliberationList" parameterType="map" resultType="map">
+		select
+			DELIBERATION_ID "deliberationId",
+			DELIBERATION_PERSONNEL "deliberationPersonnel",
+			DELIBERATION_RESULT "deliberationResult",
+			MEETING_ID "meetingId",
+			SUBJECT_ID "subjectId"
+		from tiol_deliberation
+		where SUBJECT_ID = #{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteDeliberationBySubejctId" parameterType="java.lang.String">
+		delete from tiol_deliberation where SUBJECT_ID = #{subjectId,jdbcType=VARCHAR}
+	</delete>
+</mapper>
+	

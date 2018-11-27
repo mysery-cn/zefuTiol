@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.ItemMapper">
+	
+	<select id="queryList" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_item where status = 1
+	</select>
+	
+	<select id="queryItemType" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_item 
+		where status = 1 and item_name in 
+		('五年发展战略与规划',
+		'三年滚动发展规划',
+		'年度投资计划',
+		'非主业投资',
+		'特别监管类投资项目',
+		'境外非主业投资项目',
+		'重大项目投资')
+		<if test="itemName != null and itemName != ''">
+			and item_name = #{itemName, jdbcType=VARCHAR}
+		</if>
+		order by order_number asc
+	</select>
+	
+	<select id="queryCompanyByInst" parameterType="java.util.Map" resultType="String">
+		select COMPANY_ID from T_UMS_CLASS_COMPANY where CLASS_ID = #{instID,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryItemListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+			select t.item_name as "itemName",t.item_code as "itemCode",ROWNUM rn,t.item_id as "itemId"
+			from biz_tiol_item t 
+			where t.status = 1
+			<if test='navLevel != "0"'>
+				<if test='navLevel == "1"'>
+					and t.catalog_id in
+					<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach> 
+				</if>
+				<if test="search == 'self'">
+					and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+				</if>
+				<if test="search == 'chirld'">
+					and t.catalog_id in
+					<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				<if test='navLevel == "3"'>
+					and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+				</if>
+			</if>
+			<if test="companyID != null and companyID != ''">
+				and t.company_id in
+				<foreach collection="companyID" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="itemCode != null and itemCode != ''">
+				and t.item_code = #{itemCode}
+			</if>
+		) m
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="queryItemMeetingListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select tm.item_id as "itemId",
+        nvl(tm.ALIAS,tmt.type_name) as "meetingName" from
+		tiol_item_meeting tm
+		left join biz_tiol_meeting_type tmt	on tm.type_id = tmt.type_id 
+		where tm.item_id in 
+		(
+			select m.item_id from (
+				select ROWNUM rn,t.item_id
+				from biz_tiol_item t 
+				where t.status = 1
+				<if test='navLevel != "0"'>
+					<if test='navLevel == "1"'>
+						and t.catalog_id in
+						<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+							#{item}
+						</foreach> 
+					</if>
+					<if test="search == 'self'">
+						and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+					</if>
+					<if test="search == 'chirld'">
+						and t.catalog_id in
+						<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+							#{item}
+						</foreach>
+					</if>
+					<if test='navLevel == "3"'>
+						and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+					</if>
+				</if>
+				<if test="companyID != null and companyID != ''">
+					and t.company_id in
+					<foreach collection="companyID" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			) m
+			where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+		) order by tm.order_number asc
+	</select>
+	
+	<select id="queryItemListByPageCount" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+			from biz_tiol_item t where t.status = 1
+			<if test='navLevel != "0"'>
+				<if test='navLevel == "1"'>
+					and t.catalog_id in
+					<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach> 
+				</if>
+				<if test="search == 'self'">
+					and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+				</if>
+				<if test="search == 'chirld'">
+					and t.catalog_id in
+					<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				<if test='navLevel == "3"'>
+					and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+				</if>
+			</if>
+			<if test="companyID != null and companyID != ''">
+				and t.company_id in
+				<foreach collection="companyID" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="itemCode != null and itemCode != ''">
+				and t.item_code = #{itemCode}
+			</if>
+	</select>
+	
+	<select id="queryChirldCatalogID" parameterType="java.util.Map" resultType="String">
+        <if test='navLevel == "1"'>
+            select tc.catalog_id from BIZ_TIOL_CATALOG tc
+            left join BIZ_TIOL_CATALOG tcc on tcc.catalog_id = tc.catalog_pid
+            left join BIZ_TIOL_CATALOG tcs on tcs.catalog_id = tcc.catalog_pid
+            where tcs.catalog_id = #{catalogId, jdbcType=VARCHAR} and tcs.status = 1
+            union all
+        </if>
+        select tc.catalog_id from BIZ_TIOL_CATALOG tc
+        left join BIZ_TIOL_CATALOG tcc on tcc.catalog_id = tc.catalog_pid
+        where tcc.catalog_id = #{catalogId, jdbcType=VARCHAR} and tcc.status = 1
+	</select>
+	
+	<select id="queryCatalogItemByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select m.*,ROWNUM rn from (
+			select t.item_name as "itemName",t.item_code as "itemCode",t.item_id as "itemId"
+			from biz_tiol_item t
+			where t.status = 1
+			<if test="levelCode != null and levelCode != ''">
+				and substr(t.item_code, 0, 1) = #{levelCode, jdbcType=VARCHAR}
+			</if>
+			<if test="companyId != null and companyId != ''">
+				and t.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="catalogId != null and catalogId != ''">
+				and t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+			</if>
+			<if test="itemName != null and itemName != ''">
+				and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+			</if>
+			order by t.order_number asc
+		) m)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	
+	<select id="getCatalogItemCount" parameterType="java.util.Map" resultType="Integer">
+		select count(*) from (
+		select t.item_name as "itemName",t.item_code as "itemCode",t.item_id as "itemId"
+		from biz_tiol_item t
+		where t.status = 1
+		<if test="levelCode != null and levelCode != ''">
+			and substr(t.item_code, 0, 1) = #{levelCode, jdbcType=VARCHAR}
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and t.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="catalogId != null and catalogId != ''">
+			and t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+		</if>
+		<if test="itemName != null and itemName != ''">
+			and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="itemCode != null and itemCode != ''">
+			and t.item_code = #{itemCode, jdbcType=VARCHAR}
+		</if>
+		)
+	</select>
+	
+	<select id="queryItemMeetingOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+		select tm.item_id as "itemId",nvl(tmt.alias,tmt.type_name) as "meetingName" from 
+		tiol_item_meeting tm
+		left join biz_tiol_meeting_type tmt	on tm.type_id = tmt.type_id 
+		where tm.item_id in (
+			select m.item_id from (
+				select ROWNUM rn,t.item_id
+				from biz_tiol_item t 
+				where t.status = 1
+					<if test="levelCode != null and levelCode != ''">
+						and substr(t.item_code, 0, 1) = #{levelCode, jdbcType=VARCHAR}
+					</if>
+					<if test="companyId != null and companyId != ''">
+						and t.company_id = #{companyId, jdbcType=VARCHAR}
+					</if>
+					<if test="catalogId != null and catalogId != ''">
+						and t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+					</if>
+					<if test="itemName != null and itemName != ''">
+						and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+					</if>
+			) m
+			where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+		) order by tm.order_number asc
+	</select>
+	
+	<select id="queryGzwItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+			select t.item_name as "itemName",t.item_code as "itemCode",ROWNUM rn,t.item_id as "itemId"
+			from biz_tiol_item t 
+			where t.CATALOG_ID = #{catalogId} and t.company_id = 'GZW' and t.status = 1
+		) m
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="queryGzwItemListCount" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+		from biz_tiol_item t 
+		where t.status = 1
+			<if test = "catalogId != null and catalogId != ''">
+				and t.CATALOG_ID = #{catalogId}
+			</if>
+			and t.company_id = 'GZW'
+	</select>
+	
+	<delete id="deleteGzwItem" parameterType="java.util.Map">
+		delete from biz_tiol_item where item_id in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="queryGzwItem" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.item_name as "itemName",t.item_code as "itemCode",ROWNUM rn,t.item_id as "itemId"
+			from biz_tiol_item t 
+			where item_id = #{itemId} and t.company_id = 'GZW'
+	</select>
+	
+	<update id="updateGzwItem" parameterType="java.util.Map">
+		update biz_tiol_item set itemCode = #{itemCode},item_name = #{itemName},
+		update_time = sysdate,update_use = #{CURRENT_USER.userId,jdbcType=VARCHAR}
+		where item_id = #{itemId} and company_id = 'GZW'
+	</update>
+	
+	<insert id="saveGzwItem" parameterType="java.util.Map">
+		insert into biz_tiol_item
+		(FID,ITEM_ID,CATALOG_ID,ITEM_NAME,ITEM_CODE,COMPANY_ID,STATUS,CREATE_TIME,CREATE_USER) 
+		values 
+		(#{FID},#{FID},#{catalogId},#{itemName},#{itemCode},'GZW',1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR})
+	</insert>
+	
+	<update id="updateItem" parameterType="java.util.Map">
+		update biz_tiol_item set 
+		<trim suffixOverrides=",">
+			<if test="CATALOG_ID != null">
+				CATALOG_ID = #{CATALOG_ID},
+			</if>
+			<if test="ITEM_NAME != null">
+				item_name = #{ITEM_NAME},
+			</if>
+			<if test="ITEM_CODE != null">
+				item_code = #{ITEM_CODE},
+			</if>
+			<if test="COMPANY_ID != null">
+				company_id = #{COMPANY_ID},
+			</if>
+			<if test="LEGAL_FLAG != null">
+				legal_flag = #{LEGAL_FLAG},
+			</if>
+			<if test="ORDER_NUMBER != null">
+				order_number = #{ORDER_NUMBER},
+			</if>
+			<if test="STATUS != null">
+				status = #{STATUS},
+			</if>
+			<if test="UPDATE_TIME != null">
+				update_time = #{UPDATE_TIME},
+			</if>
+			<if test="UPDATE_USER != null">
+				update_use = #{UPDATE_USER},
+			</if>
+			<if test="REMARK != null">
+				remark = #{REMARK},
+			</if>
+			<if test="SID != null">
+				SID = #{SID},
+			</if>
+			<if test="UPLOAD_STATUS != null">
+				UPLOAD_STATUS = #{UPLOAD_STATUS},
+			</if>
+		</trim>
+		<choose>
+			<when test="ITEM_ID != null">
+				where item_id = #{ITEM_ID}
+			</when>
+			<otherwise>
+				where SID = #{SID} and status = 1
+			</otherwise>
+		</choose>
+	</update>
+	
+	<insert id="saveItem" parameterType="java.util.Map">
+		insert into biz_tiol_item
+		(FID,ITEM_ID,CATALOG_ID,ITEM_NAME,ITEM_CODE,COMPANY_ID,STATUS,CREATE_TIME,CREATE_USER,LEGAL_FLAG,REMARK) 
+		values 
+		(#{itemId},#{itemId},#{catalogId},#{itemName},#{itemCode},#{CURRENT_USER.companyId},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR},#{legalFlag},#{remark})
+	</insert>
+	
+	<update id="updateItemSimple" parameterType="java.util.Map">
+		update biz_tiol_item set item_code = #{itemCode},item_name = #{itemName},
+		legal_flag = #{legalFlag},remark = #{remark},
+		update_time = sysdate,update_use = #{CURRENT_USER.userId,jdbcType=VARCHAR}
+		where item_id = #{itemId}
+	</update>
+	
+	<select id="queryItem" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.item_name as "itemName",t.item_code as "itemCode",ROWNUM rn,t.item_id as "itemId",t.legal_flag as "legalFlag",t.remark as "remark"
+			from biz_tiol_item t 
+			where item_id = #{itemId}
+	</select>
+	
+	<select id="queryMeetingType" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.type_id as "typeId",t.type_name as "typeName",t.type_code as "typeCode" from BIZ_TIOL_MEETING_TYPE t order by t.order_number
+	</select>
+	
+	<delete id="deleteItemMeeting" parameterType="java.util.Map">
+		delete from TIOL_ITEM_MEETING where item_id =#{itemId}
+	</delete>
+	
+	<insert id="saveItemMeeting" parameterType="java.util.Map">
+		insert into TIOL_ITEM_MEETING
+		(ITEM_MEETING_ID,ITEM_ID,TYPE_ID,ORDER_NUMBER) 
+		values 
+		(#{MEETINGID},#{itemId},#{typeId},#{orderNumber})
+	</insert>
+	
+	<select id="queryItemMeeting" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.type_id as "typeId",t.type_name as "typeName",t.type_code as "typeCode"
+		from TIOL_ITEM_MEETING im 
+			left join BIZ_TIOL_MEETING_TYPE t on im.TYPE_ID = t.TYPE_ID
+			where im.ITEM_ID = #{itemId} order by im.ORDER_NUMBER
+	</select>
+
+	
+	<select id="queryItemByIds" parameterType="String" resultType="java.util.Map">
+		select * from biz_tiol_item where item_id in  
+		<foreach collection="items" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		AND COMPANY_ID = #{companyId}
+	</select>
+
+	<!--根据条件查询事项列表-->
+	<select id="queryItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select ITEM_ID,ITEM_CODE,ITEM_NAME,CATALOG_ID from BIZ_TIOL_ITEM where STATUS='1'
+		<if test="companyId != null and companyId != ''">
+			AND COMPANY_ID = #{companyId}
+		</if>
+	</select>
+	
+	<select id="queryAllCatalogListByCode" resultType="java.util.Map">
+		SELECT distinct(CATALOG_CODE) "navCode",
+		       CATALOG_NAME "navName",
+		       CATALOG_ID "catalogId"
+		FROM biz_tiol_catalog
+	</select>
+
+</mapper>
+	

@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.ComRegulationMapper">
+
+	<select id="queryRegulationList" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select r.regulation_name, rt.type_name, rt.order_number, r.file_id, rt.type_id
+		from biz_tiol_regulation_type rt
+		left join biz_tiol_regulation r
+		on r.type_id = rt.type_id
+		and r.status = 1
+		<if test="companyId != null and companyId !=''">
+		 	and r.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		where rt.status = 1
+		order by r.effective_date desc)
+		order by order_number asc
+	</select>
+
+	<select id="queryListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		Select t.* from (SELECT ROWNUM RN,t.* FROM biz_tiol_regulation t
+			where t.status = 1
+			<if test="companyId != null and companyId != ''">
+				and COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+		order by COMPANY_ID)t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="getTotalCount" parameterType="String" resultType="Integer">
+		Select count(*) total FROM biz_tiol_regulation t
+		where t.status = 1
+		<if test="companyId != null and companyId != ''">
+			and COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+		</if>
+	</select>
+
+	<select id="querRegulationPageList" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+			select br.REGULATION_ID,br.REGULATION_NAME,nvl(br.APPROVAL_DATE,'') as "APPROVAL_DATE",
+			nvl(br.EFFECTIVE_DATE,'') as "EFFECTIVE_DATE",tc.COMPANY_SHORT_NAME,bt.TYPE_NAME,ROWNUM rn,
+			br.upload_status as "uploadStatus",br.status as "status"
+			from BIZ_TIOL_REGULATION br
+			left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+			left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+			where br.COMPANY_ID = #{CURRENT_USER.companyId}
+			<if test="companyName != null and companyName != ''">
+				and (tc.COMPANY_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="typeID != null and typeID != ''">
+				and bt.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+			</if>
+			<if test="recycle == 0">
+				and ((br.STATUS = '0' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '1' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '2' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '1' and br.UPLOAD_STATUS = '1' and br.company_id = #{CURRENT_USER.companyId}) 
+				or (br.STATUS = '2' and br.UPLOAD_STATUS = '1' and br.company_id = #{CURRENT_USER.companyId}))
+			</if>
+			<if test="recycle == 1">
+				and br.STATUS = '0' and br.UPLOAD_STATUS = '1'
+			</if>
+			order by br.COMPANY_ID
+		) m	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+		order by rn
+	</select>
+
+	<select id="querRegulationPageListCount" parameterType="java.util.Map" resultType="Integer">
+		select count(br.REGULATION_ID) from BIZ_TIOL_REGULATION br
+			left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+			left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+			where br.COMPANY_ID = #{CURRENT_USER.companyId}
+			<if test="companyName != null and companyName != ''">
+				and (tc.COMPANY_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="typeID != null and typeID != ''">
+				and bt.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+			</if>
+			<if test="recycle == 0">
+				and ((br.STATUS = '0' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '1' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '2' and br.UPLOAD_STATUS = '0' and br.company_id = #{CURRENT_USER.companyId})
+				or (br.STATUS = '1' and br.UPLOAD_STATUS = '1' and br.company_id = #{CURRENT_USER.companyId}) 
+				or (br.STATUS = '2' and br.UPLOAD_STATUS = '1' and br.company_id = #{CURRENT_USER.companyId}))
+			</if>
+			<if test="recycle == 1">
+				and br.STATUS = '0' and br.UPLOAD_STATUS = '1'
+			</if>
+	</select>
+
+	<select id="queryRegulationDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select br.REGULATION_ID,br.REGULATION_NAME,
+		nvl(br.APPROVAL_DATE,'') as "APPROVAL_DATE",
+		nvl(br.EFFECTIVE_DATE,'') as "EFFECTIVE_DATE",
+		tc.COMPANY_SHORT_NAME,bt.TYPE_NAME,CONCAT(tc.COMPANY_NAME, '-',br.REGULATION_NAME) as "title",
+		nvl(br.RATE,'') as "rate",nvl(tf.FILE_NAME,'') as "fileName",nvl(br.FILE_ID,'') as FILE_ID,
+		nvl(br.AUDIT_FILE_ID,'') as "auditFileId",decode(br.AUDIT_FLAG,1,'是',0,'否','') as "auditFlag"
+		from BIZ_TIOL_REGULATION br
+		left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+		left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+		left join T_FILESYS_FILES tf on br.FILE_ID = tf.FILE_ID
+		where br.REGULATION_ID = #{regulationID, jdbcType=VARCHAR} and br.status = 1
+	</select>
+
+	<select id="queryAuditFileList" parameterType="java.util.Map" resultType="java.util.Map">
+		select ff.FILE_ID,ff.FILE_NAME
+		from T_FILESYS_FILES ff left join TIOL_ATTACHMENT ta on ff.FILE_ID = ta.FILE_ID
+		where ta.ATTACHMENT_ID in
+		<foreach collection="fileIds" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="queryVoteModeList" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+			bi.item_name as "itemName",bi.item_code as "itemCode",tm.mode_name as "modeName"
+		from TIOL_REGULATION_VOTE tv
+		left join TIOL_VOTE_MODE tm on tv.mode_id = tm.mode_id
+		left join BIZ_TIOL_ITEM bi  on tv.item_id = bi.item_id
+		where tv.REGULATION_ID = #{regulationID, jdbcType=VARCHAR}
+	</select>
+
+	<select id="queryRegulationTypeDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select type_name as "typeName",
+			   type_code as "typeCode",
+			   upload_flag as "uploadFlag",
+			   type_id as "typeId",
+			   order_number as "orderNumber"
+		from BIZ_TIOL_REGULATION_TYPE where type_id = #{typeId}
+	</select>
+
+	<delete id="deleteRegulationType" parameterType="java.util.Map">
+		delete from BIZ_TIOL_REGULATION_TYPE where type_id in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<update id="updateRegulationType" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION_TYPE set
+			   type_name = #{typeName},
+			   type_code = #{typeCode},
+			   upload_flag = #{uploadFlag},
+			   order_number = #{orderNumber}
+		where type_id = #{typeId}
+	</update>
+
+	<insert id="saveRegulationType" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION_TYPE
+		(fid,type_id,type_code,type_name,upload_flag,status,create_time,create_user,order_number)
+		values
+		(#{FID},#{FID},#{typeCode},#{typeName},#{uploadFlag},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR},#{orderNumber})
+	</insert>
+
+	<select id="queryRegulationTypeListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (
+			select type_name as "typeName",
+			   type_code as "typeCode",
+			   upload_flag as "uploadFlag",
+			   type_id as "typeId",
+			   ROWNUM rn
+			from BIZ_TIOL_REGULATION_TYPE
+			order by order_number
+		) m	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="queryRegulationTypeTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select count(type_id) from BIZ_TIOL_REGULATION_TYPE
+	</select>
+
+	<update id="updateRegulation" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION set
+		<trim suffixOverrides=",">
+			<if test="REGULATION_NAME != null">
+				regulation_name = #{REGULATION_NAME},
+			</if>
+			<if test="TYPE_ID != null">
+				type_id = #{TYPE_ID},
+			</if>
+			<if test="COMPANY_ID != null">
+				company_id = #{COMPANY_ID},
+			</if>
+			<if test="APPROVAL_DATE != null">
+				approval_date = #{APPROVAL_DATE},
+			</if>
+			<if test="EFFECTIVE_DATE != null">
+				effective_date = #{EFFECTIVE_DATE},
+			</if>
+			<if test="AUDIT_FLAG != null">
+				audit_flag = #{AUDIT_FLAG},
+			</if>
+			<if test="AUDIT_FILE_ID != null">
+				audit_file_id = #{AUDIT_FILE_ID},
+			</if>
+			<if test="RATE != null">
+				rate = #{RATE},
+			</if>
+			<if test="FILE_ID != null">
+				file_id = #{FILE_ID},
+			</if>
+			<if test="STATUS != null">
+				status = #{STATUS},
+			</if>
+			<if test="UPDATE_TIME != null">
+				update_time = #{UPDATE_TIME},
+			</if>
+			<if test="UPDATE_USER != null">
+				update_user = #{UPDATE_USER},
+			</if>
+			<if test="REMARK != null">
+				remark = #{REMARK},
+			</if>
+			<if test="SID != null">
+				SID = #{SID},
+			</if>
+		</trim>
+		<choose>
+			<when test="REGULATION_ID != null">
+				where regulation_id = #{REGULATION_ID} and status = 1
+			</when>
+			<otherwise>
+				where SID = #{SID} and status = 1
+			</otherwise>
+		</choose>
+	</update>
+
+	<insert id="insertRegulation" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION
+		(fid,regulation_id,regulation_name,type_id,company_id,approval_date,effective_date,audit_flag,rate,file_id,status,remark,upload_status)
+		values(#{regulationId,jdbcType=VARCHAR},#{regulationId,jdbcType=VARCHAR},#{regulationName,jdbcType=VARCHAR},#{typeCode,jdbcType=VARCHAR},
+			   #{companyId,jdbcType=VARCHAR},#{approvalDate,jdbcType=VARCHAR},#{effectiveDate,jdbcType=VARCHAR},#{auditFlag,jdbcType=VARCHAR},
+			   #{rate,jdbcType=VARCHAR},#{fileId,jdbcType=VARCHAR},'1',#{remark,jdbcType=VARCHAR},'0')
+	</insert>
+
+	<insert id="batchInsertRegulationVote" parameterType="java.util.List">
+		begin
+		 <foreach collection="list" item="regulationVote" index="index">
+			 insert into TIOL_REGULATION_VOTE(vote_id, regulation_id, item_id, mode_id) values
+			 (
+				 #{regulationVote.voteId,jdbcType=VARCHAR},
+				 #{regulationVote.regulationId,jdbcType=VARCHAR},
+				 #{regulationVote.itemId,jdbcType=VARCHAR},
+				 #{regulationVote.modeId,jdbcType=VARCHAR}
+			);
+		 </foreach>
+		end;
+	</insert>
+
+	<select id="queryItemVotesByRegulationId" parameterType="java.lang.String" resultType="java.util.Map">
+		select *
+		from TIOL_REGULATION_VOTE
+		where regulation_id = #{regulationId, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="isExistsRegulation" parameterType="java.util.Map" resultType="Integer">
+		select count(*) from BIZ_TIOL_REGULATION
+		where REGULATION_NAME = #{regulationName} and company_id = #{CURRENT_USER.companyId}
+	</select>
+	
+	<select id="isExistsItem" parameterType="java.util.Map" resultType="java.util.Map">
+		select count(*) from BIZ_TIOL_ITEM where ITEM_CODE = #{itemCode} and company_id = #{CURRENT_USER.companyId} and STATUS = 1
+	</select>
+	
+	<select id="queryRegulationTypeList" resultType="java.util.Map">
+		select TYPE_NAME as "typeName",TYPE_ID as "typeId" from BIZ_TIOL_REGULATION_TYPE where STATUS = '1'
+	</select>
+	
+	<select id="queryItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select ITEM_CODE as "itemCode",ITEM_ID as "itemId",ITEM_NAME as "itemName" from BIZ_TIOL_ITEM where company_id = #{CURRENT_USER.companyId} and STATUS = 1
+	</select>
+	
+	<select id="queryVoteModeListSimple" resultType="java.util.Map">
+		select MODE_ID as "modeId",MODE_NAME as "modeName" from TIOL_VOTE_MODE where STATUS = 1
+	</select>
+	
+	<insert id="insertImportRegulation" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION
+		(fid,regulation_id,regulation_name,type_id,company_id,approval_date,effective_date,audit_flag,rate,status,remark,upload_status,update_time,update_user)
+		values(#{regulationId,jdbcType=VARCHAR},#{regulationId,jdbcType=VARCHAR},#{regulationName,jdbcType=VARCHAR},#{typeCode,jdbcType=VARCHAR},
+			   #{CURRENT_USER.companyId},#{approvalDate,jdbcType=VARCHAR},#{effectiveDate,jdbcType=VARCHAR},#{auditFlag,jdbcType=VARCHAR},
+			   #{rate,jdbcType=VARCHAR},'1',#{remark,jdbcType=VARCHAR},'0',sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR})
+	</insert>
+	
+	<delete id="deleteRegulation" parameterType="java.util.Map">
+		delete from BIZ_TIOL_REGULATION where REGULATION_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteRegulationVote" parameterType="java.util.Map">
+		delete from TIOL_REGULATION_VOTE where REGULATION_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach> 
+	</delete>
+
+	<select id="queryRegulationById" parameterType="java.lang.String" resultType="java.util.Map">
+		select *
+		from BIZ_TIOL_REGULATION
+		where regulation_id = #{regulationID, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updateRegulationStatusByids" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION set STATUS = #{status},UPLOAD_STATUS = #{uploadStatus} where REGULATION_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<select id="queryRegulationByIds" parameterType="java.lang.String" resultType="java.util.Map">
+		select * from BIZ_TIOL_REGULATION
+		where regulation_id in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<delete id="deleteRegulationVote2" parameterType="java.lang.String">
+		delete from TIOL_REGULATION_VOTE
+		where regulation_id = #{regulaltionId, jdbcType=VARCHAR}
+	</delete>
+
+	<update id="updateRegulation2" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION set
+		<trim suffixOverrides=",">
+			<if test="regulationName != null">
+				regulation_name = #{regulationName},
+			</if>
+			<if test="typeCode != null">
+				type_id = #{typeCode},
+			</if>
+			<if test="companyId != null">
+				company_id = #{companyId},
+			</if>
+			<if test="approvalDate != null">
+				approval_date = #{approvalDate},
+			</if>
+			<if test="effectiveDate != null">
+				effective_date = #{effectiveDate},
+			</if>
+			<if test="auditFlag != null">
+				audit_flag = #{auditFlag},
+			</if>
+			<!--<if test="AUDIT_FILE_ID != null">-->
+				<!--audit_file_id = #{AUDIT_FILE_ID},-->
+			<!--</if>-->
+			<if test="rate != null">
+				rate = #{rate},
+			</if>
+			<if test="fileId != null">
+				file_id = #{fileId},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime},
+			</if>
+			<if test="updateUser != null">
+				update_user = #{updateUser},
+			</if>
+			<if test="remark != null">
+				remark = #{remark},
+			</if>
+			<if test="sid != null">
+				SID = #{sid},
+			</if>
+		</trim>
+	where regulation_id = #{regulationId} and status = 1
+
+	</update>
+	
+</mapper>
+	

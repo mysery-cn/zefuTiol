@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.mysql.DataSynchroMapper">
+
+	<select id="getCompanyMember" resultType="java.util.Map" >
+		SELECT g.*,d.`职务`,q.`单位全称`,q.`单位简称` FROM r_db_303127420 d
+		LEFT JOIN r_db_303127415 g ON d.`人员编码` = g.`人员编码`
+		LEFT JOIN r_db_303127419 q ON g.`单位编码` = q.`单位编码`
+		UNION
+		SELECT g.*,z.`现任职务` AS '职务',q.`单位全称`,q.`单位简称` FROM r_db_303127421 z
+		LEFT JOIN r_db_303127415 g ON z.`人员编码` = g.`人员编码`
+		LEFT JOIN r_db_303127419 q ON g.`单位编码` = q.`单位编码`
+	</select>
+	
+</mapper>
+	

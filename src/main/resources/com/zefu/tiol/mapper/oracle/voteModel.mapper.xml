@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.VoteModelMapper">
+
+    <select id="queryVoteModelList" parameterType="java.util.Map" resultType="java.util.Map">
+        select t.* from (
+            select ROWNUM RN,
+                    t.MODE_ID as "modelId",
+                    t.MODE_NAME as "modelName",
+                    t.MODE_RADIX as "modelRadix",
+                    t.MODE_RATE as "modelRate"
+            from TIOL_VOTE_MODE t where t.STATUS = 1
+        )t
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+
+    <select id="queryVoteModelTotalCount" parameterType="String" resultType="Integer">
+        select count(*)  FROM TIOL_VOTE_MODE
+    </select>
+
+    <select id="queryVoteModelDetail" parameterType="java.util.Map" resultType="java.util.Map">
+        select
+            t.MODE_ID as "modelId",
+            t.MODE_NAME as "modelName",
+            t.MODE_RADIX as "modelRadix",
+            t.MODE_RATE as "modelRate"
+        from TIOL_VOTE_MODE t where t.MODE_ID = #{modelId, jdbcType=VARCHAR}
+    </select>
+
+
+    <delete id="deleteVoteModel" parameterType="java.util.Map">
+        delete from TIOL_VOTE_MODE where MODE_ID in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <update id="updateVoteModel" parameterType="java.util.Map">
+		update TIOL_VOTE_MODE set
+               MODE_NAME = #{modelName},
+               MODE_RADIX = #{modelRadix},
+               MODE_RATE = #{modelRate},
+               UPDATE_TIME = sysdate,
+			   UPDATE_USER = #{CURRENT_USER.userId,jdbcType=VARCHAR}
+		where MODE_ID = #{modelId}
+	</update>
+
+    <insert id="saveVoteModel" parameterType="java.util.Map">
+		insert into TIOL_VOTE_MODE
+		(MODE_ID,MODE_NAME,MODE_RADIX,MODE_RATE,status,create_time,create_user)
+		values
+		(#{modelId},#{modelName},#{modelRadix},#{modelRate},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR})
+	</insert>
+
+
+
+
+</mapper>

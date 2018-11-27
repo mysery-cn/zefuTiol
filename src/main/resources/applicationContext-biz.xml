@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd	
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+       <context:component-scan base-package="com.zefu.tiol" >
+              <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+       </context:component-scan>
+
+       <aop:config proxy-target-class="true">
+              <!-- 配置数据库事务拦截 -->
+              <aop:pointcut id="oaserviceOperation" expression="execution(* com.zefu.tiol.*.service.*.*(..))"/>
+              <aop:advisor advice-ref="txAdvice" pointcut-ref="oaserviceOperation"/>
+       </aop:config>
+
+
+
+<!-- 服务启动时加载启用短信云MAS平台SDK add by jjb 20170805 -->
+<!-- 
+<bean class="com.yr.oa.sms.web.SmsLoginListener"/>
+<bean class="com.yr.oa.sms.web.SmsMain"/>
+ -->
+<bean id="tiolDataAuthFilter" class="com.zefu.tiol.filter.DataAuthFilter"/>
+
+
+
+
+
+	
+	<!--统一资源提供的接口服务   yangdq-->
+       <dubbo:reference interface="com.yr.gap.interfaces.ums.IUmsOutterBaseService"
+                        id="oaUmsBaseService"
+                        cluster="failover"
+                        timeout="30000" check="false" >
+                        
+                        
+                        
+    	</dubbo:reference>
+
+       <dubbo:reference id="umsDubboLeaderServiceConsumer"
+                        interface="com.yr.gap.interfaces.ums.IUmsOutterLeaderService"
+                        cluster="failover"
+                        timeout="30000" check="false" >
+       </dubbo:reference>
+</beans>

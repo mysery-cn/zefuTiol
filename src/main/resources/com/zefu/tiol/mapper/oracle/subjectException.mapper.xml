@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.SubjectExceptionMapper">
+    
+    <resultMap id="baseMap"
+		type="com.zefu.tiol.pojo.SubjectException">
+		<result column="EXCEPTION_ID" property="exceptionId" jdbcType="VARCHAR" />
+		<result column="SUBJECT_ID" property="subjectId" jdbcType="VARCHAR" />
+		<result column="EXCEPTION_TYPE" property="exceptionType" jdbcType="VARCHAR" />
+		<result column="EXCEPTION_CAUSE" property="exceptionCause" jdbcType="VARCHAR" />
+		<result column="CONFIRM_FLAG" property="confirmFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+   <update id="updateSubjectException" parameterType="java.util.Map">
+      update tiol_subject_exception t
+      <set>
+          <if test="exceptionType != null and exceptionType != ''">
+              t.EXCEPTION_TYPE = #{exceptionType,jdbcType=VARCHAR}
+          </if>
+          <if test="exceptionCause != null and exceptionCause != ''">
+              t.EXCEPTION_CAUSE = #{exceptionCause,jdbcType=VARCHAR}
+          </if>
+          <if test="confirmFlag != null and confirmFlag != ''">
+              t.CONFIRM_FLAG = #{confirmFlag,jdbcType=VARCHAR}
+          </if>
+      </set>
+      where t.EXCEPTION_ID = #{exceptionId,jdbcType=VARCHAR}
+   </update>
+   
+   <delete id="deleteSubjectException" parameterType="java.util.Map" >
+       delete from tiol_subject_exception t where t.EXCEPTION_ID = #{exceptionId,jdbcType=VARCHAR}
+   </delete>
+
+    <select id="querySubjectExceptionByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select m.* from (
+        select te.EXCEPTION_CAUSE as "exceptionCause",
+                te.EXCEPTION_TYPE as "exceptionType",
+                bs.SUBJECT_NAME as "subjectName",
+                ROWNUM rn
+        from TIOL_SUBJECT_EXCEPTION te
+        left join BIZ_TIOL_SUBJECT bs on te.SUBJECT_ID = bs.SUBJECT_ID
+        left join biz_tiol_meeting tm on bs.MEETING_ID = tm.meeting_id
+        left join biz_tiol_item bi on bi.item_id = bs.ITEM_ID
+        where tm.STATUS = 1
+        <if test="subjectName != null and subjectName != ''">
+            and bs.SUBJECT_NAME like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+        </if>
+        <if test="exceptionType != null and exceptionType != ''">
+            and te.EXCEPTION_TYPE = #{exceptionType, jdbcType=VARCHAR}
+        </if>
+        <if test="companyID != null and companyID != ''">
+            and tm.company_id in
+            <foreach collection="companyID" index="index" item="item"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="catalogList != null and catalogList != ''">
+            AND bi.CATALOG_ID IN (
+            <foreach collection="catalogList" separator="," item="item" index="index">
+                #{item.CATALOG_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        <if test="meetingTypeList != null and meetingTypeList != ''">
+            AND tm.TYPE_ID IN (
+            <foreach collection="meetingTypeList" separator="," item="item" index="index">
+                #{item.TYPE_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        <if test="companyList != null and companyList.size() > 0">
+            and tm.company_id in (
+            <foreach collection="companyList" separator="," item="item" index="index">
+                #{item.COMPANY_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        ) m
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+
+
+    </select>
+
+    <select id="querySubjectExceptionTotalCount" parameterType="java.util.Map" resultType="Integer">
+        select count(te.EXCEPTION_ID)
+        from TIOL_SUBJECT_EXCEPTION te
+        left join BIZ_TIOL_SUBJECT bs on te.SUBJECT_ID = bs.SUBJECT_ID
+        left join biz_tiol_meeting tm on bs.MEETING_ID = tm.meeting_id
+        left join biz_tiol_item bi on bi.item_id = bs.ITEM_ID
+        where tm.STATUS = 1
+        <if test="subjectName != null and subjectName != ''">
+            and bs.SUBJECT_NAME like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+        </if>
+        <if test="exceptionType != null and exceptionType != ''">
+            and te.EXCEPTION_TYPE = #{exceptionType, jdbcType=VARCHAR}
+        </if>
+        <if test="companyID != null and companyID != ''">
+            and tm.company_id in
+            <foreach collection="companyID" index="index" item="item"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="catalogList != null and catalogList != ''">
+            AND bi.CATALOG_ID IN (
+            <foreach collection="catalogList" separator="," item="item" index="index">
+                #{item.CATALOG_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        <if test="meetingTypeList != null and meetingTypeList != ''">
+            AND tm.TYPE_ID IN (
+            <foreach collection="meetingTypeList" separator="," item="item" index="index">
+                #{item.TYPE_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+        <if test="companyList != null and companyList.size() > 0">
+            and tm.company_id in (
+            <foreach collection="companyList" separator="," item="item" index="index">
+                #{item.COMPANY_ID,jdbcType=VARCHAR}
+            </foreach>
+            )
+        </if>
+    </select>
+
+
+
+
+
+
+</mapper>

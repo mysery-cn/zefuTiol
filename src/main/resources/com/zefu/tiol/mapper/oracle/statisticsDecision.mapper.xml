@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.StatisticsDecisionMapper">
+
+	<resultMap id="statistics" type="com.zefu.tiol.pojo.StatisticsDecision">
+		<result column="STATISTICS_ID" property="statisticsId"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId" jdbcType="VARCHAR" />
+		<result column="INDUSTRY_ID" property="industryId" jdbcType="VARCHAR" />
+		<result column="OBJECT_ID" property="objectId" jdbcType="VARCHAR" />
+		<result column="STATISTICS_NAME" property="statisticsName"
+			jdbcType="VARCHAR" />
+		<result column="STATISTICS_TYPE" property="statisticsType"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_QUANTITY" property="subjectQuantity"
+			jdbcType="INTEGER" />
+		<result column="MEETING_QUANTITY" property="meetingQuantity"
+			jdbcType="INTEGER" />
+		<result column="STATISTICS_TIME" property="statisticsTime"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="statisticsVo" type="com.zefu.tiol.pojo.StatisticsDecisionVo"
+		extends="statistics">
+		<result column="COMPANY_QUANTITY" property="companyQuantity"
+			jdbcType="INTEGER" />
+		<result column="COMPANY_NAME" property="companyName" jdbcType="VARCHAR" />
+		<result column="INDUSTRY_NAME" property="industryName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryListByType" parameterType="String" resultMap="statisticsVo">
+		select m.STATISTICS_NAME,m.OBJECT_ID,m.STATISTICS_TYPE,
+		SUM(m.SUBJECT_QUANTITY)SUBJECT_QUANTITY,
+		SUM(m.MEETING_QUANTITY)MEETING_QUANTITY,
+		sum(case when
+		m.SUBJECT_QUANTITY='0' and m.MEETING_QUANTITY='0' then 0 else 1
+		end)COMPANY_QUANTITY
+		FROM TIOL_STATISTICS_DECISION m
+		inner join
+		t_ums_mgr_company ti
+		on ti.company_id = m.company_id
+		WHERE ti.inst_level
+		!='1' and m.STATISTICS_TYPE=#{type, jdbcType=VARCHAR}
+		<if test="industryId != null and industryId != ''">
+			AND m.INDUSTRY_ID = #{industryId, jdbcType=VARCHAR}
+		</if>
+		GROUP BY m.STATISTICS_NAME,m.OBJECT_ID,m.STATISTICS_TYPE
+	</select>
+
+	<select id="listCompanyDecision" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select t.* from (
+		select p.*,ROWNUM rn
+		from (
+		select m.company_id as "companyId",
+		m.company_short_name as "companyShortName",
+		m.company_name as "companyName",
+		<foreach collection="statisticsType" separator="," item="preItem"
+			index="idx" close=",">
+			nvl(sum(decode(statistics_name,#{preItem.statisticsName,jdbcType=VARCHAR},SUBJECT_QUANTITY,0)),0)
+			"${idx}"
+		</foreach>
+		m.display_order
+		FROM T_UMS_MGR_COMPANY m
+		LEFT JOIN TIOL_STATISTICS_DECISION t on (t.company_id = m.company_id and
+		t.statistics_type is not null)
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and m.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id in (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			and m.inst_level !='1'
+		</where>
+		group by m.company_id,m.company_short_name,m.company_name,
+		m.display_order
+		order by m.display_order)p
+		) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and
+		rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="countCompanyDecision" parameterType="java.util.Map"
+		resultType="Integer">
+		select count(p.company_id)
+		from t_ums_mgr_company p
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and (
+				p.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				p.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and p.company_id in (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			and p.inst_level !='1'
+		</where>
+	</select>
+
+	<select id="listStatisticsDecision" resultMap="statisticsVo">
+		SELECT
+		STATISTICS_NAME,OBJECT_ID,STATISTICS_TYPE,SUBJECT_QUANTITY,MEETING_QUANTITY,COMPANY_ID,INDUSTRY_ID,STATISTICS_TIME,
+		(select inst_name from t_ums_mgr_inst where inst_id=t.INDUSTRY_ID)
+		INDUSTRY_NAME,
+		(select company_short_name from t_ums_mgr_company where
+		company_id=t.company_id) COMPANY_NAME
+		FROM TIOL_STATISTICS_DECISION t
+	</select>
+
+	<select id="listDecisionMeeting" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select t.* from (
+		select p.*,ROWNUM rn from(
+		select btm.meeting_id as "meetingId",btm.meeting_name as "meetingName",
+		to_char(btm.meeting_time,'yyyy"年"MM"月"dd"日"') as
+		"meetingTime",n.type_name as "meetingType",m.company_id as
+		"companyId",
+		m.company_short_name as "companyName",m.DISPLAY_ORDER as "displayOrder",n.ORDER_NUMBER as
+		"orderNumber"
+		from biz_tiol_meeting btm
+		inner join biz_tiol_meeting_type n on n.type_id=btm.type_id
+		inner join biz_tiol_subject bts on bts.meeting_id = btm.meeting_id
+		inner join tiol_subject_item tsi on tsi.subject_id = bts.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		inner join T_UMS_MGR_COMPANY m on m.company_id = btm.company_id
+		<where>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				and btm.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+			    and trunc(btm.meeting_time) &gt;=
+				    to_date(#{startTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="endTime != null and endTime !=''">
+			    and trunc(btm.meeting_time) &lt;=
+				    to_date(#{endTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="meetingType != null and meetingType != ''">
+			    and btm.type_id =#{meetingType, jdbcType=VARCHAR}
+		    </if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and m.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if
+				test="statisticsType != null and statisticsType != '' and objectId != null and objectId != ''">
+				<if test='statisticsType ==  "2"'>
+					and bti.catalog_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+				<if test='statisticsType ==  "1"'>
+					and bts.source_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+			</if>
+			<choose>
+				<when
+					test="sourceType != null and sourceType != '' and itemType != null and itemType != ''">
+					and (bts.source_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+					or bti.catalog_id in
+					<foreach collection="itemType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+					)
+				</when>
+				<when
+					test="sourceType != null and sourceType != '' and (itemType == null or itemType == '')">
+					and bts.source_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+				</when>
+				<when
+					test="(sourceType == null or sourceType == '') and itemType != null and itemType != ''">
+					and bts.catalog_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+				</when>
+			</choose>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1' and
+			bti.status='1'
+		</where>
+		group by
+		btm.meeting_id,btm.meeting_name,btm.meeting_time,n.type_name,m.company_id,m.company_short_name,m.DISPLAY_ORDER,n.ORDER_NUMBER
+		order by btm.meeting_time desc)p
+		) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,
+		jdbcType=INTEGER}
+	</select>
+
+	<select id="countDecisionMeeting" parameterType="java.util.Map"
+		resultType="Integer">
+		select count(*) from(select btm.meeting_id
+		from biz_tiol_meeting btm
+		inner join biz_tiol_meeting_type n on n.type_id=btm.type_id
+		inner join biz_tiol_subject bts on bts.meeting_id = btm.meeting_id
+		inner join tiol_subject_item tsi on tsi.subject_id = bts.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		inner join T_UMS_MGR_COMPANY m on m.company_id = btm.company_id
+		<where>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				and btm.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+			    and trunc(btm.meeting_time) &gt;=
+				    to_date(#{startTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="endTime != null and endTime !=''">
+			    and trunc(btm.meeting_time) &lt;=
+				    to_date(#{endTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="meetingType != null and meetingType != ''">
+			    and btm.type_id =#{meetingType, jdbcType=VARCHAR}
+		    </if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and m.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if
+				test="statisticsType != null and statisticsType != '' and objectId != null and objectId != ''">
+				<if test='statisticsType ==  "2"'>
+					and bti.catalog_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+				<if test='statisticsType ==  "1"'>
+					and bts.source_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+			</if>
+			<choose>
+				<when
+					test="sourceType != null and sourceType != '' and itemType != null and itemType != ''">
+					and (bts.source_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+					or bti.catalog_id in
+					<foreach collection="itemType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+					)
+				</when>
+				<when
+					test="sourceType != null and sourceType != '' and (itemType == null or itemType == '')">
+					and bts.source_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+				</when>
+				<when
+					test="(sourceType == null or sourceType == '') and itemType != null and itemType != ''">
+					and bts.catalog_id in
+					<foreach collection="sourceType" separator="," item="item"
+						index="idx" open="(" close=")">
+						#{item.objectId,jdbcType=VARCHAR}
+					</foreach>
+				</when>
+			</choose>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1' and
+			bti.status='1'
+		</where>
+		group by btm.meeting_id)
+	</select>
+
+	<select id="listDecisionSubject" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select t.* from (
+		select p.*,ROWNUM rn from(
+		select
+		bts.subject_id as "subjectId" ,
+		bts.subject_name as "subjectName" ,
+		bts.meeting_id as "meetingId" ,
+		btm.meeting_name as "meetingName" ,
+		to_char(btm.meeting_time, 'yyyy"年"MM"月"dd"日"') as "meetingTime" ,
+		btm.company_id as "companyId" ,
+		m.company_short_name as "companyName" ,
+		n.type_name as "meetingType" ,
+		bts.subject_result as "subjectResult",
+		bts.adopt_flag as "adoptFlag" ,
+		bts.subject_file_id as "subjectFileId",
+		bts.opinion_file_id as "opinionFileId",
+		bts.pass_flag as "passFlag"
+		from
+		biz_tiol_subject bts
+		inner join biz_tiol_meeting btm
+		on
+		btm.meeting_id=bts.meeting_id
+		inner join T_UMS_MGR_COMPANY m
+		on
+		m.company_id = btm.company_id
+		inner join biz_tiol_meeting_type n
+		on
+		n.type_id=btm.type_id
+		inner join tiol_subject_item tsi
+		on
+		tsi.subject_id = bts.subject_id
+		inner join biz_tiol_item bti
+		on
+		bti.item_id=tsi.item_id
+		<where>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				and btm.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+			    and trunc(btm.meeting_time) &gt;=
+				    to_date(#{startTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="endTime != null and endTime !=''">
+			    and trunc(btm.meeting_time) &lt;=
+				    to_date(#{endTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="meetingType != null and meetingType != ''">
+			    and btm.type_id =#{meetingType, jdbcType=VARCHAR}
+		    </if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and m.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if
+				test="statisticsType != null and statisticsType != '' and objectId != null and objectId != ''">
+				<if test='statisticsType ==  "2"'>
+					and bti.catalog_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+				<if test='statisticsType ==  "1"'>
+					and bts.source_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+			</if>
+            <if test="subjectResult != null and subjectResult !=''">
+                and bts.SUBJECT_RESULT like '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'
+            </if>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1' and
+			bti.status='1'
+		</where>
+		group by
+		bts.subject_id, bts.subject_name, bts.meeting_id, btm.meeting_name, btm.meeting_time,
+		btm.company_id, m.company_short_name, n.type_name, bts.subject_result,
+		bts.adopt_flag ,
+		bts.subject_file_id , bts.opinion_file_id , bts.pass_flag
+		order by btm.meeting_time desc
+		)p
+		) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,
+		jdbcType=INTEGER}
+	</select>
+
+	<select id="countDecisionSubject" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		select count(*) from
+		(select
+		bts.subject_id
+		from
+		biz_tiol_subject bts
+		inner join biz_tiol_meeting btm
+		on
+		btm.meeting_id=bts.meeting_id
+		inner join T_UMS_MGR_COMPANY m
+		on
+		m.company_id = btm.company_id
+		inner join biz_tiol_meeting_type n
+		on
+		n.type_id=btm.type_id
+		inner join tiol_subject_item tsi
+		on
+		tsi.subject_id = bts.subject_id
+		inner join biz_tiol_item bti
+		on
+		bti.item_id=tsi.item_id
+		<where>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				and btm.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+			    and trunc(btm.meeting_time) &gt;=
+				    to_date(#{startTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="endTime != null and endTime !=''">
+			    and trunc(btm.meeting_time) &lt;=
+				    to_date(#{endTime},'yyyy-mm-dd')
+		    </if>
+		    <if test="meetingType != null and meetingType != ''">
+			    and btm.type_id =#{meetingType, jdbcType=VARCHAR}
+		    </if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and m.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if
+				test="statisticsType != null and statisticsType != '' and objectId != null and objectId != ''">
+				<if test='statisticsType ==  "2"'>
+					and bti.catalog_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+				<if test='statisticsType ==  "1"'>
+					and bts.source_id =#{objectId,jdbcType=VARCHAR}
+				</if>
+			</if>
+            <if test="subjectResult != null and subjectResult !=''">
+                and bts.SUBJECT_RESULT like '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'
+            </if>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1' and
+			bti.status='1'
+		</where>
+		group by
+		bts.subject_id)
+	</select>
+
+	<select id="listDecisionCompany" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select ta.* from (
+		select p.*,ROWNUM rn from( select
+		m.company_id as "companyId" ,
+		m.company_short_name as "companyShortName" ,
+		m.company_name as "companyName",
+		m.DISPLAY_ORDER as "displayOrder" ,
+		t.statistics_type as "statisticsType",
+		sum(t.meeting_quantity)as"meetingQuantity",
+		sum(t.subject_quantity)as"subjectQuantity"
+		from
+		tiol_statistics_decision t
+		left join T_UMS_MGR_COMPANY m on m.company_id = t.company_id
+		where t.meeting_quantity !='0' and t.subject_quantity!='0' and m.inst_level
+		!='1'
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyName != null and companyName != ''">
+			and (
+			m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			or
+			m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			)
+		</if>
+		<if test="statisticsType != null and statisticsType != ''">
+			and t.statistics_type=#{statisticsType,jdbcType=VARCHAR}
+		</if>
+		<if test="objectId != null and objectId != ''">
+			and t.object_id=#{objectId,jdbcType=VARCHAR}
+		</if>
+		group by m.company_id,m.company_short_name,m.company_name,m.DISPLAY_ORDER
+		,t.statistics_type
+		order by m.DISPLAY_ORDER)p
+		) ta
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,
+		jdbcType=INTEGER}
+	</select>
+
+	<select id="countDecisionCompany" parameterType="java.util.Map"
+		resultType="Integer">
+		select count(*) from(
+		select m.company_id
+		from
+		tiol_statistics_decision t
+		left join T_UMS_MGR_COMPANY m on m.company_id = t.company_id
+		where t.meeting_quantity !='0' and t.subject_quantity!='0' and m.inst_level
+		!='1'
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyName != null and companyName != ''">
+			and (
+			m.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			or
+			m.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			)
+		</if>
+		<if test="statisticsType != null and statisticsType != ''">
+			and t.statistics_type=#{statisticsType,jdbcType=VARCHAR}
+		</if>
+		<if test="objectId != null and objectId != ''">
+			and t.object_id=#{objectId,jdbcType=VARCHAR}
+		</if>
+		group by m.company_id)p
+	</select>
+</mapper>
+	

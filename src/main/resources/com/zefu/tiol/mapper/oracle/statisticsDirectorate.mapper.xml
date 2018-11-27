@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.StatisticsDirectorateMapper">
+
+	<select id="queryStatisticsDirectorateVia" parameterType="java.util.Map" resultType="java.util.Map">
+		select year "year", 
+		nvl(sum(via_quantity),0) as "via", 
+		nvl(sum(unvia_quantity),0) as "unvia"
+  		from tiol_statistics_directorate d, t_ums_mgr_company c
+  		where year = to_char(sysdate, 'yyyy') 
+  		and d.company_id =  c.company_id
+		<if test="param.industryId != null and param.industryId != ''">
+			and c.inst_id = #{param.industryId, jdbcType=VARCHAR}
+		</if>
+		group by year
+	</select>
+
+</mapper>
+	

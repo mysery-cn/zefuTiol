@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.SpecialMapper">
+	
+	<select id="querySpecialList" parameterType="java.util.Map" resultType="java.util.Map">
+		select SPECIAL_ID as "specialId",SPECIAL_NAME as "specialName"  
+		from biz_tiol_special 
+		<if test="specialName != null and specialName != ''">
+			where SPECIAL_NAME like '%'|| #{specialName, jdbcType=VARCHAR} ||'%'
+		</if>
+	</select>
+	
+	<insert id="saveSpecial" parameterType="java.util.Map">
+		insert into biz_tiol_special
+		(FID,SPECIAL_ID,SPECIAL_NAME,STATUS,CREATE_TIME,CREATE_USER) 
+		values 
+		(#{FID},#{FID},#{specialName},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR})
+	</insert>
+	
+	<update id="updateSpecial" parameterType="java.util.Map">
+		update biz_tiol_special set SPECIAL_NAME = #{specialName},UPDATE_TIME = sysdate,UPDATE_USER = #{CURRENT_USER.userId,jdbcType=VARCHAR}
+		where SPECIAL_ID = #{specialId}
+	</update>
+	
+	<delete id="deleteSpecial" parameterType="java.util.Map">
+		delete from biz_tiol_special where SPECIAL_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="querySpecialDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select SPECIAL_ID as "specialId",SPECIAL_NAME as "specialName"  
+		from biz_tiol_special 
+		where SPECIAL_ID = #{specialId}
+	</select>
+	
+	
+</mapper>
+	

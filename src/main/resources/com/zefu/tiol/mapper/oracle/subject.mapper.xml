@@ -1,0 +1,1272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.SubjectMapper">
+
+	<resultMap id="baseMap" type="com.zefu.tiol.pojo.Subject">
+		<result column="FID" property="fId" jdbcType="VARCHAR" />
+		<result column="C_MODULEID" property="cModuleId"
+			jdbcType="VARCHAR" />
+		<result column="C_MODULENAME" property="cModuleName"
+			jdbcType="VARCHAR" />
+		<result column="C_BIZID" property="cBizId" jdbcType="VARCHAR" />
+		<result column="C_BIZNAME" property="cBizname"
+			jdbcType="VARCHAR" />
+		<result column="C_CREATERID" property="cCreaterId"
+			jdbcType="VARCHAR" />
+		<result column="C_CREATERNAME" property="cCreaterName"
+			jdbcType="VARCHAR" />
+		<result column="C_CREATEDATE" property="cCreateDate"
+			javaType="java.util.Date" />
+		<result column="C_CREATEDEPTID" property="cCreateDeptId"
+			jdbcType="VARCHAR" />
+		<result column="C_CREATEDEPTNAME" property="cCreateDeptName"
+			jdbcType="VARCHAR" />
+		<result column="C_COMPANYID" property="cCompanyId"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_ID" property="subjectId"
+			jdbcType="VARCHAR" />
+		<result column="MEETING_ID" property="meetingId"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_CODE" property="subjectCode"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_NAME" property="subjectName"
+			jdbcType="VARCHAR" />
+		<result column="SOURCE_ID" property="sourceId"
+			jdbcType="VARCHAR" />
+		<result column="SPECIAL_ID" property="specialId"
+			jdbcType="VARCHAR" />
+		<result column="ITEM_ID" property="itemId" jdbcType="VARCHAR" />
+		<result column="REL_MEETING_ID" property="relMeetingId"
+			jdbcType="VARCHAR" />
+		<result column="REL_SUBJECT_ID" property="relSubjectId"
+			jdbcType="VARCHAR" />
+		<result column="PASS_FLAG" property="passFlag"
+			jdbcType="VARCHAR" />
+		<result column="APPROVAL_FLAG" property="approvalFlag"
+			jdbcType="VARCHAR" />
+		<result column="ADOPT_FLAG" property="adoptFlag"
+			jdbcType="VARCHAR" />
+		<result column="OPINION_FILE_ID" property="opinionFileId"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_FILE_ID" property="subjectFileId"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_RESULT" property="subjectResult"
+			jdbcType="VARCHAR" />
+		<result column="VERIFY_FLAG" property="verifyFlag"
+			jdbcType="VARCHAR" />
+		<result column="VIA_FLAG" property="viaFlag" jdbcType="VARCHAR" />
+		<result column="REMARK" property="remark" jdbcType="VARCHAR" />
+		<result column="SID" property="sid" jdbcType="VARCHAR" />
+		<result column="REL_MEETING_NAME" property="relMeetingName"
+			jdbcType="VARCHAR" />
+		<result column="REL_SUBJECT_NAME" property="relSubjectName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="listSubjectByMeeting" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select subject_id as "subjectId" ,
+		subject_name as "subjectName",
+		pass_flag as "passFlag" ,
+		SOURCENAME as "sourceName" ,
+		SPECIALNAME as
+		"specialName",
+		ATTENDANCEMEMBER as "attendanceMember"
+		from (
+		select
+		bts.subject_id ,
+		bts.subject_name ,
+		bts.pass_flag ,
+		decode(m.source_id,
+		null, '无', m.source_name) sourceName ,
+		decode(n.special_id, null, '无',
+		n.special_name) specialName,
+		nvl(
+		(select
+		to_char(wm_concat(t.attendance_name ||decode(t.position,null,'','（'
+		||t.position ||'）')))
+		from tiol_attendance t where
+		t.meeting_id=bts.meeting_id and t.subject_id=bts.subject_id
+		), '无') as
+		attendanceMember
+		from
+		biz_tiol_subject bts
+		inner join
+		biz_tiol_meeting btm
+		on btm.meeting_id=bts.meeting_id
+		inner join
+		tiol_subject_item tsi on
+		tsi.subject_id=bts.subject_id
+		inner join
+		biz_tiol_item bti on
+		bti.item_id=tsi.item_id
+		left join biz_tiol_source
+		m on
+		m.source_id=bts.source_id
+		left join biz_tiol_special n on
+		n.special_id=bts.special_id
+		where
+		bts.meeting_id=#{meetingId,jdbcType=VARCHAR}
+		and bts.status = '1' and
+		bti.status='1'
+		<if test="catalogList != null and catalogList.size() > 0">
+			and bti.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item"
+				index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="meetingList != null and meetingList.size() > 0">
+			and btm.TYPE_ID IN (
+			<foreach collection="meetingList" separator="," item="item"
+				index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		)
+		group by
+		subject_id ,
+		subject_name,
+		pass_flag ,
+		SOURCENAME ,
+		SPECIALNAME,
+		ATTENDANCEMEMBER
+	</select>
+
+	<select id="listDeliberationBySubject"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		select
+		t.deliberation_personnel as name,m.position as
+		position,t.deliberation_result as result from TIOL_DELIBERATION t
+		left
+		join biz_tiol_company_member m on m.name = t.deliberation_personnel
+		and m.company_id=#{companyId,jdbcType=VARCHAR}
+		where
+		t.subject_id=#{subjectId,jdbcType=VARCHAR}and
+		t.meeting_id=#{meetingId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getSubjectDetail" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select bts.subject_id as "subjectId",
+		bts.subject_name as
+		"subjectName",
+		btm.meeting_name as "meetingName",
+		to_char(wm_concat(bti.item_name)) as "itemName",
+		to_char(btm.meeting_time,'yyyy"年"MM"月"dd"日"') as "meetingTime",
+		nvl(bts.subject_result,'无') as "subjectResult",
+		bts.adopt_flag as
+		"adoptFlag",
+		bts.subject_file_id as "subjectFileId",
+		bts.opinion_file_id as "opinionFileId",
+		bts.pass_flag as "passFlag",
+		decode(bts.source_id,'','无',null,'无',m.source_name) as "sourceName",
+		decode(bts.special_id,'','无',null,'无',n.special_name) as "specialName",
+		nvl((select
+		to_char(wm_concat(t.attendance_name|| decode(t.position,'',null,null,null,'（'||t.position||'）')))
+		from
+		tiol_attendance t where t.meeting_id=#{meetingId,jdbcType=VARCHAR}
+		and
+		t.subject_id=#{subjectId,jdbcType=VARCHAR}),'无')
+		as "attendanceMember"
+		from biz_tiol_subject bts
+		inner join tiol_subject_item tsi on
+		tsi.subject_id=bts.subject_id
+		inner join biz_tiol_item bti on
+		bti.item_id=tsi.item_id
+		inner join biz_tiol_meeting btm on
+		btm.meeting_id=bts.meeting_id
+		inner join T_UMS_MGR_COMPANY mc on
+		mc.company_id = btm.company_id
+		left join biz_tiol_source m on
+		m.source_id=bts.source_id
+		left join biz_tiol_special n on
+		n.special_id=bts.special_id
+		where
+		bts.meeting_id=#{meetingId,jdbcType=VARCHAR} and
+		bts.subject_id=#{subjectId,jdbcType=VARCHAR}
+		and bts.status = '1' and
+		btm.status='1' and bti.status='1'
+		<if test="catalogList != null and catalogList.size() > 0">
+			and bti.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item"
+				index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and btm.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator=","
+				item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and mc.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		group by bts.subject_id,
+		bts.subject_name ,
+		btm.meeting_name ,
+		btm.meeting_time,
+		bts.subject_result,
+		bts.adopt_flag ,
+		bts.subject_file_id,
+		bts.opinion_file_id ,
+		bts.pass_flag,
+		m.source_name ,
+		bts.source_id,
+		bts.special_id,
+		n.special_name
+	</select>
+
+	<select id="getSubjectMeetingList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		with p as (
+		select
+		s.subject_id,s.meeting_id,m.meeting_name,r.rel_subject_id,r.rel_meeting_id
+		from biz_tiol_subject s
+		inner join biz_tiol_meeting m on
+		m.meeting_id=s.meeting_id
+		inner join tiol_subject_item tsi on
+		tsi.subject_id=s.subject_id
+		inner join biz_tiol_item i on i.item_id =
+		tsi.item_id
+		left join tiol_subject_relevance r on
+		r.subject_id=s.subject_id
+		where s.status='1' and m.status='1' and
+		i.status='1'
+		<if test="catalogList != null and catalogList.size() > 0">
+			and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item"
+				index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator=","
+				item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		group by
+		s.subject_id,s.meeting_id,m.meeting_name,r.rel_subject_id,r.rel_meeting_id)
+		select subject_id as "subjectId",meeting_id as
+		"meetingId",meeting_name as "meetingName",
+		to_char(wm_concat(rel_meeting_id)) as
+		"relMeetingId",level as "level"
+		from p
+		start with rel_subject_id =
+		#{subjectId,jdbcType=VARCHAR} connect by
+		prior subject_id =
+		rel_subject_id
+		group by
+		subject_id,meeting_id,meeting_name,level
+		union
+		select subject_id as
+		"subjectId",meeting_id as "meetingId",meeting_name
+		as "meetingName",
+		to_char(wm_concat(rel_meeting_id)) as "relMeetingId",1-level
+		as "level"
+		from p
+		start with subject_id = #{subjectId,jdbcType=VARCHAR}
+		connect by
+		prior rel_subject_id = subject_id
+		group by
+		subject_id,meeting_id,meeting_name,1-level
+	</select>
+
+	<select id="countSubjectMeetingLevel"
+		parameterType="java.util.Map" resultType="java.util.Map">
+		select levels as "levels",count(*) as "levelNum" from
+		(
+		with p as (
+		select
+		s.subject_id,s.meeting_id,m.meeting_name,r.rel_subject_id,r.rel_meeting_id
+		from biz_tiol_subject s
+		inner join biz_tiol_meeting m on
+		m.meeting_id=s.meeting_id
+		inner join tiol_subject_item tsi on
+		tsi.subject_id=s.subject_id
+		inner join biz_tiol_item i on i.item_id =
+		tsi.item_id
+		left join tiol_subject_relevance r on
+		r.subject_id=s.subject_id
+		where s.status='1' and m.status='1' and
+		i.status='1'
+		<if test="catalogList != null and catalogList.size() > 0">
+			and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item"
+				index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator=","
+				item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		group by
+		s.subject_id,s.meeting_id,m.meeting_name,r.rel_subject_id,r.rel_meeting_id)
+		select subject_id ,meeting_id ,meeting_name ,
+		to_char(wm_concat(rel_meeting_id)),level as levels
+		from p
+		start with
+		rel_subject_id = #{subjectId,jdbcType=VARCHAR} connect by prior
+		subject_id = rel_subject_id
+		group by
+		subject_id,meeting_id,meeting_name,level
+		union
+		select subject_id
+		,meeting_id ,meeting_name,
+        to_char(wm_concat(rel_meeting_id)) ,1-level as levels
+		from p
+		start with subject_id = #{subjectId,jdbcType=VARCHAR} connect by
+		prior rel_subject_id = subject_id
+		group by
+		subject_id,meeting_id,meeting_name,1-level
+		) group by levels
+	</select>
+
+	<select id="getRelSubjectItem" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select t.item_name as "itemName",t.item_code as
+		"itemCode",ROWNUM rn,t.item_id as "itemId",t.legal_flag as
+		"legalFlag",t.remark as "remark"
+		from tiol_subject_item m,biz_tiol_item
+		t
+		where m.item_id=t.item_id and t.status='1' and
+		m.subject_id=#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+
+	<select id="listDangjianSubject" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select t.* from (
+		select p.*,
+		ROWNUM rn from (
+		select
+		bts.subject_id as
+		"subjectId",
+		bts.subject_name as "subjectName",
+		bts.meeting_id as
+		"meetingId",
+		btm.meeting_name as "meetingName",
+		to_char(btm.meeting_time,'yyyy"年"MM"月"dd"日"') as "meetingTime",
+		btm.company_id as "companyId",
+		m.company_name as "companyName",
+		m.company_short_name as "companyShortName",
+		n.type_name as
+		"meetingType",
+		tse.exception_id as "exceptionId",
+		tse.confirm_flag as
+		"confirmFlag",
+		m.display_order as "displayOrder"
+		from biz_tiol_subject
+		bts
+		inner join tiol_subject_item tsi on tsi.subject_id=bts.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		inner join
+		biz_tiol_meeting btm on btm.meeting_id=bts.meeting_id
+		inner join
+		biz_tiol_meeting_type n on n.type_id=btm.type_id
+		inner join
+		T_UMS_MGR_COMPANY m on m.company_id = btm.company_id
+		left join
+		tiol_subject_exception tse on (tse.subject_id=bts.subject_id and
+		tse.exception_type='1')
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName,
+				jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName,
+				jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator=","
+					item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="startTime != null and startTime !=''">
+				and trunc(btm.meeting_time) &gt;=
+				to_date(#{startTime},'yyyy-mm-dd')
+			</if>
+			<if test="endTime != null and endTime !=''">
+				and trunc(btm.meeting_time) &lt;=
+				to_date(#{endTime},'yyyy-mm-dd')
+			</if>
+			<if test="meetingType != null and meetingType != ''">
+				and n.type_id = #{meetingType, jdbcType=VARCHAR}
+			</if>
+			<if test="preFlag != null and preFlag != '' ">
+				<if test='preFlag ==  "0"'>
+					and tse.exception_id is null
+				</if>
+				<if test='preFlag ==  "1"'>
+					and tse.exception_id is not null and tse.confirm_flag
+					='1'
+				</if>
+				<if test='preFlag ==  "2"'>
+					and tse.exception_id is not null and (tse.confirm_flag
+					='0' or
+					tse.confirm_flag is null)
+				</if>
+			</if>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1'
+		</where>
+		group by bts.subject_id,bts.subject_name ,bts.meeting_id
+		,btm.meeting_name,btm.meeting_time,
+		btm.company_id
+		,m.company_name,m.company_short_name,n.type_name,tse.exception_id
+		,tse.confirm_flag,
+		m.display_order
+		order by tse.exception_id nulls
+		last,tse.confirm_flag desc nulls
+		last,btm.meeting_time desc
+		)p
+		) t
+		where
+		rn &gt; #{minRow,
+		jdbcType=INTEGER} and
+		rn &lt;=#{maxRow,
+		jdbcType=INTEGER}
+	</select>
+
+	<select id="countDangjianSubject" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		select count(*) from
+		(select bts.subject_id
+		from biz_tiol_subject bts
+		inner join tiol_subject_item tsi on tsi.subject_id=bts.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		inner join
+		biz_tiol_meeting btm on btm.meeting_id=bts.meeting_id
+		inner join
+		biz_tiol_meeting_type n on n.type_id=btm.type_id
+		inner join
+		T_UMS_MGR_COMPANY m on m.company_id = btm.company_id
+		left join
+		tiol_subject_exception tse on (tse.subject_id=bts.subject_id and
+		tse.exception_type='1')
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and (
+				m.company_short_name like '%'|| #{companyName,
+				jdbcType=VARCHAR} ||'%'
+				or
+				m.company_name like '%'|| #{companyName,
+				jdbcType=VARCHAR} ||'%'
+				)
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and btm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator=","
+					item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and m.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bts.subject_name like '%'|| #{subjectName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="companyId != null and companyId != ''">
+				and btm.company_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="startDate != null and startDate !=''">
+				and trunc(btm.meeting_time) &gt;=
+				to_date(#{startDate},'yyyy-mm-dd')
+			</if>
+			<if test="endDate != null and endDate !=''">
+				and trunc(btm.meeting_time) &lt;=
+				to_date(#{endDate},'yyyy-mm-dd')
+			</if>
+			<if test="meetingType != null and meetingType != ''">
+				and n.type_id = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="preFlag != null and preFlag != '' ">
+				<if test='preFlag ==  "0"'>
+					and tse.exception_id is null
+				</if>
+				<if test='preFlag ==  "1"'>
+					and tse.exception_id is not null and tse.confirm_flag
+					='1'
+				</if>
+				<if test='preFlag ==  "2"'>
+					and tse.exception_id is not null and (tse.confirm_flag
+					='0' or
+					tse.confirm_flag is null)
+				</if>
+			</if>
+			and m.inst_level !='1' and bts.status='1' and btm.status='1'
+		</where>
+		group by bts.subject_id)
+	</select>
+
+	<select id="querySubjectByPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from (select ROWNUM rn, a.* from (
+		select m.meeting_id,
+        m.meeting_name,
+        s.subject_id,
+        s.subject_name,
+        nvl(s.SUBJECT_RESULT,'暂无结果') as "subjectResult",
+        m.company_id,
+		to_char(m.meeting_time, 'yyyy"年"mm"月"dd"日"') as meeting_time,
+        to_char(wm_concat(c.catalog_code)) as catalog_code,
+        ct.company_short_name,
+		(case when m.summary_file_id is null and m.notice_file_id is null then '否' else '是' end) as "flag"
+		from biz_tiol_meeting m, biz_tiol_subject s, biz_tiol_item i,
+		biz_tiol_catalog c, tiol_subject_item si, t_ums_mgr_company ct
+		where m.status = 1 and s.status = 1 and i.status = 1 and c.status = 1 
+		and c.catalog_id = i.catalog_id and i.item_id = si.item_id and s.meeting_id = m.meeting_id 
+		and s.subject_id = si.subject_id and m.company_id = ct.company_id
+		<if test="catalogList != null and catalogList.size() > 0">
+			and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item"
+				index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator=","
+				item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item"
+				index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="typeId != null and typeId != ''">
+			and m.type_id = #{typeId, jdbcType=VARCHAR}
+		</if>
+		<if test="subjectName != null and subjectName != ''">
+			and s.subject_name like '%'|| #{subjectName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="levelCode != null and levelCode != ''">
+			and substr(c.catalog_code, 0, 1) = #{levelCode,
+			jdbcType=VARCHAR}
+		</if>
+		<if test="catalogCode != null and catalogCode != ''">
+			and c.catalog_code = #{catalogCode, jdbcType=VARCHAR}
+		</if>
+		<if
+			test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+			and to_char(m.meeting_time,'yyyy-mm-dd') between #{startTime,
+			jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+		</if>
+        <if test="subjectResult != null and subjectResult !=''">
+            and s.SUBJECT_RESULT like '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'
+        </if>
+		group by m.meeting_id, m.meeting_name, s.subject_id, s.subject_name,s.SUBJECT_RESULT,
+		m.company_id,ct.company_short_name,m.meeting_time,m.summary_file_id,m.notice_file_id
+		order by
+		m.meeting_time desc
+		) a) where rn &gt; #{minRow,
+		jdbcType=INTEGER} and
+		rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="getSubjectTotalCount" parameterType="java.util.Map"
+		resultType="Integer">
+		select count(*) from (select ROWNUM rn, a.* from (
+		select m.meeting_id, m.meeting_name, s.subject_id, s.subject_name, 
+		nvl(s.SUBJECT_RESULT,'暂无结果') as "subjectResult",
+		m.company_id, to_char(m.meeting_time, 'yyyy"年"mm"月"dd"日"') as meeting_time,
+        to_char(wm_concat(c.catalog_code)) as catalog_code, ct.company_short_name,
+		(case when m.summary_file_id is null
+		and m.notice_file_id is null then '否' else '是' end) as "flag"
+		from biz_tiol_meeting m, biz_tiol_subject s, biz_tiol_item i,
+		biz_tiol_catalog c, tiol_subject_item si, t_ums_mgr_company ct
+		where m.status = 1 and s.status = 1 and i.status = 1 and c.status = 1 
+		and c.catalog_id = i.catalog_id and i.item_id = si.item_id and s.meeting_id = m.meeting_id 
+		and s.subject_id = si.subject_id and m.company_id = ct.company_id
+		<if test="catalogList != null and catalogList.size() > 0">
+		    and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item" index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator="," item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item" index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="typeId != null and typeId != ''">
+			and m.type_id = #{typeId, jdbcType=VARCHAR}
+		</if>
+		<if test="subjectName != null and subjectName != ''">
+			and s.subject_name like '%'|| #{subjectName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="levelCode != null and levelCode != ''">
+			and substr(c.catalog_code, 0, 1) = #{levelCode,
+			jdbcType=VARCHAR}
+		</if>
+		<if test="catalogCode != null and catalogCode != ''">
+			and c.catalog_code = #{catalogCode, jdbcType=VARCHAR}
+		</if>
+		<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+			and to_char(m.meeting_time,'yyyy-mm-dd') between #{startTime, 
+			jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+		</if>
+        <if test="subjectResult != null and subjectResult !=''">
+            and s.SUBJECT_RESULT like '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'
+        </if>
+		group by m.meeting_id, m.meeting_name, s.subject_id, s.subject_name,s.SUBJECT_RESULT,
+		m.company_id,ct.company_short_name,m.meeting_time,m.summary_file_id,m.notice_file_id
+		)a)
+	</select>
+
+	<select id="querySubjectList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from(
+            select t.*,ROWNUM rn from(
+                select distinct tm.meeting_id as "meetingId",
+                tm.meeting_name as
+                "meetingName",
+                to_char(tm.meeting_time,'yyyy-mm-dd') as "meetingTime",
+                tc.company_short_name as "companyName",
+                tc.company_id as "companyId",
+                tmt.type_name as "typeName",
+                ts.subject_id as "subjectId",
+                ts.subject_name as "subjectName",
+                ts.pass_flag as "pass_flag"
+                from biz_tiol_subject ts
+                left join biz_tiol_meeting tm on ts.meeting_id = tm.meeting_id
+                left join biz_tiol_meeting_type tmt on tm.type_id = tmt.type_id
+                left join t_ums_mgr_company tc on tm.company_id = tc.company_id
+                left join TIOL_SUBJECT_ITEM ti on ts.SUBJECT_ID = ti.SUBJECT_ID
+                left join biz_tiol_item bi on bi.ITEM_ID = ti.ITEM_ID
+                where
+                ts.status='1'
+                <if test="companyName != null and companyName != ''">
+                    and tc.COMPANY_SHORT_NAME like '%'|| #{companyName,
+                    jdbcType=VARCHAR}
+                    ||'%'
+                </if>
+                <if test="typeID != null and typeID != ''">
+                    and tm.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+                </if>
+                <if test="subjectName != null and subjectName != ''">
+                    and ts.subject_name like '%'|| #{subjectName,
+                    jdbcType=VARCHAR} ||'%'
+                </if>
+                <if test="meetingName != null and meetingName != ''">
+                    and tm.meeting_name like '%'|| #{meetingName,
+                    jdbcType=VARCHAR} ||'%'
+                </if>
+                <if test="verifyFlag != null and verifyFlag != ''">
+                    and ts.verify_flag =#{verifyFlag,jdbcType=VARCHAR}
+                </if>
+                <if test="catalogList != null and catalogList != ''">
+                    AND bi.CATALOG_ID IN (
+                    <foreach collection="catalogList" separator="," item="item" index="index">
+                        #{item.CATALOG_ID,jdbcType=VARCHAR}
+                    </foreach>
+                    )
+                </if>
+                <if test="meetingTypeList != null and meetingTypeList != ''">
+                    AND tm.TYPE_ID IN (
+                    <foreach collection="meetingTypeList" separator="," item="item" index="index">
+                        #{item.TYPE_ID,jdbcType=VARCHAR}
+                    </foreach>
+                    )
+                </if>
+                <if test="companyList != null and companyList.size() > 0">
+                    and tm.company_id in (
+                    <foreach collection="companyList" separator="," item="item" index="index">
+                        #{item.COMPANY_ID,jdbcType=VARCHAR}
+                    </foreach>
+                    )
+                </if>
+            ) t
+		)
+		where 1=1
+		<if test="minRow != null">
+			and rn &gt; #{minRow, jdbcType=INTEGER} 
+		</if>
+		<if test="maxRow != null">
+			and rn &lt;=#{maxRow,jdbcType=INTEGER}
+		</if>
+	</select>
+
+	<select id="querySubjectTotalCount"
+		parameterType="java.util.Map" resultType="Integer">
+		select count(distinct ts.subject_id)
+		from biz_tiol_subject ts
+		left join biz_tiol_meeting tm on ts.meeting_id = tm.meeting_id
+		left join biz_tiol_meeting_type tmt on tm.type_id = tmt.type_id
+		left join t_ums_mgr_company tc on tm.company_id = tc.company_id
+        left join TIOL_SUBJECT_ITEM ti on ts.SUBJECT_ID = ti.SUBJECT_ID
+        left join biz_tiol_item bi on bi.ITEM_ID = ti.ITEM_ID
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and tc.COMPANY_SHORT_NAME like '%'|| #{companyName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="typeID != null and typeID != ''">
+				and tm.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and ts.subject_name like '%'|| #{subjectName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				and tm.meeting_name like '%'|| #{meetingName,
+				jdbcType=VARCHAR} ||'%'
+			</if>
+            <if test="catalogList != null and catalogList != ''">
+                AND bi.CATALOG_ID IN (
+                <foreach collection="catalogList" separator="," item="item" index="index">
+                    #{item.CATALOG_ID,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+            <if test="meetingTypeList != null and meetingTypeList != ''">
+                AND tm.TYPE_ID IN (
+                <foreach collection="meetingTypeList" separator="," item="item" index="index">
+                    #{item.TYPE_ID,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+            <if test="companyList != null and companyList.size() > 0">
+                and tm.company_id in (
+                <foreach collection="companyList" separator="," item="item" index="index">
+                    #{item.COMPANY_ID,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+		</where>
+	</select>
+
+	<update id="updateSubject" parameterType="java.util.Map">
+		update BIZ_TIOL_SUBJECT set
+		<trim suffixOverrides=",">
+			<if test="SUBJECT_CODE != null">
+				subject_code = #{SUBJECT_CODE},
+			</if>
+			<if test="SUBJECT_NAME != null">
+				subject_name = #{SUBJECT_NAME},
+			</if>
+			<if test="SOURCE_ID != null">
+				source_id = #{SOURCE_ID},
+			</if>
+			<if test="SPECIAL_ID != null">
+				special_id = #{SPECIAL_ID},
+			</if>
+			<if test="ITEM_ID != null">
+				item_id = #{ITEM_ID},
+			</if>
+			<if test="REL_MEETING_ID != null">
+				rel_meeting_id = #{REL_MEETING_ID},
+			</if>
+			<if test="REL_SUBJECT_ID != null">
+				rel_subject_id = #{REL_SUBJECT_ID},
+			</if>
+			<if test="REL_MEETING_NAME != null">
+				rel_meeting_name = #{REL_MEETING_NAME},
+			</if>
+			<if test="REL_SUBJECT_NAME != null">
+				rel_subject_name = #{REL_SUBJECT_NAME},
+			</if>
+			<if test="PASS_FLAG != null">
+				pass_flag = #{PASS_FLAG},
+			</if>
+			<if test="APPROVAL_FLAG != null">
+				approval_flag = #{APPROVAL_FLAG},
+			</if>
+			<if test="ADOPT_FLAG != null">
+				adopt_flag = #{ADOPT_FLAG},
+			</if>
+			<if test="OPINION_FILE_ID != null">
+				opinion_file_id = #{OPINION_FILE_ID},
+			</if>
+			<if test="SUBJECT_FILE_ID != null">
+				subject_file_id = #{SUBJECT_FILE_ID},
+			</if>
+			<if test="SUBJECT_RESULT != null">
+				subject_result = #{SUBJECT_RESULT},
+			</if>
+			<if test="VERIFY_FLAG != null">
+				verify_flag = #{VERIFY_FLAG},
+			</if>
+			<if test="VIA_FLAG != null">
+				via_flag = #{VIA_FLAG},
+			</if>
+			<if test="REMARK != null">
+				remark = #{REMARK},
+			</if>
+		</trim>
+		<choose>
+			<when test="SUBJECT_ID != null">
+				where SUBJECT_ID = #{SUBJECT_ID}
+			</when>
+			<otherwise>
+				where SID = #{SID} and status='1'
+			</otherwise>
+		</choose>
+	</update>
+
+	<update id="updateSubjectByMeetingSid"
+		parameterType="java.lang.String">
+		update BIZ_TIOL_SUBJECT
+		set status= '0'
+		where meeting_id
+		in (select meeting_id from
+		biz_tiol_meeting where sid
+		=#{meetingSid,jdbcType=VARCHAR} and
+		status='1')
+		and status='1'
+	</update>
+
+	<!--插入议题信息 -->
+	<insert id="insertSubject" parameterType="java.util.List">
+		insert into
+		BIZ_TIOL_SUBJECT(FID,SUBJECT_ID,MEETING_ID,
+		SUBJECT_CODE,SUBJECT_NAME,SOURCE_ID,SPECIAL_ID,ITEM_ID,
+		PASS_FLAG,APPROVAL_FLAG,ADOPT_FLAG,OPINION_FILE_ID,
+		SUBJECT_FILE_ID,SUBJECT_RESULT,VERIFY_FLAG,VIA_FLAG,REMARK,STATUS,SID)
+		VALUES(
+		#{fid,jdbcType=VARCHAR},
+		#{subjectId,jdbcType=VARCHAR},
+		#{meetingId,jdbcType=VARCHAR},
+		#{subjectCode,jdbcType=VARCHAR},
+		#{subjectName,jdbcType=VARCHAR},
+		#{sourceId,jdbcType=VARCHAR},
+		#{specialId,jdbcType=VARCHAR},
+		#{itemId,jdbcType=VARCHAR},
+		#{passFlag,jdbcType=VARCHAR},
+		#{approvalFlag,jdbcType=VARCHAR},
+		#{adoptFlag,jdbcType=VARCHAR},
+		#{opinionFileId,jdbcType=VARCHAR},
+		#{subjectFileId,jdbcType=VARCHAR},
+		#{subjectResult,jdbcType=VARCHAR},
+		#{verifyFlag,jdbcType=VARCHAR},
+		#{viaFlag,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#{sid,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!--批量插入议题关联事项 -->
+	<insert id="batchInsertItemRelevance" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="map" index="index">
+			INSERT INTO TIOL_SUBJECT_ITEM(RELEVANCE_ID, SUBJECT_ID, ITEM_ID, UPDATE_TIME) VALUES
+			(
+			#{map.relevanceId,jdbcType=VARCHAR},
+			#{map.subjectId,jdbcType=VARCHAR},
+			#{map.itemId,jdbcType=VARCHAR},
+			to_char(sysdate,'yyyy-MM-dd')
+			);
+		</foreach>
+		end;
+	</insert>
+	<!--关联事项查询 -->
+	<select id="getItemRelevanceList" parameterType="map"
+		resultType="map">
+		select
+		si.RELEVANCE_ID "relevanceId",
+		si.SUBJECT_ID "subjectId",
+		si.ITEM_ID "itemId",
+		ti.ITEM_NAME "itemName",
+		ti.ITEM_CODE "itemCode"
+		from TIOL_SUBJECT_ITEM si
+		left join BIZ_TIOL_ITEM ti on
+		ti.ITEM_ID=si.ITEM_ID
+		where SUBJECT_ID = #{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--列席人员查询 -->
+	<select id="getAttendanceList" parameterType="map"
+		resultType="map">
+		SELECT *
+		FROM TIOL_ATTENDANCE A
+		WHERE SUBJECT_ID =
+		#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--审议结果列表查询 -->
+	<select id="getDeliberationList" parameterType="map"
+		resultType="map">
+		SELECT *
+		FROM TIOL_DELIBERATION A
+		WHERE SUBJECT_ID =
+		#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--关联议题查询 -->
+	<select id="getRelSubjectList" parameterType="map"
+		resultType="map">
+		SELECT *
+		FROM TIOL_SUBJECT_RELEVANCE A
+		WHERE SUBJECT_ID =
+		#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--批量插入关联议题 -->
+	<insert id="batchInsertSubjectRelevance" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="map" index="index">
+			insert into TIOL_SUBJECT_RELEVANCE(RELEVANCE_ID,SUBJECT_ID,REL_MEETING_ID,REL_SUBJECT_ID,REL_MEETING_NAME,REL_SUBJECT_NAME,UPDATE_TIME)
+			values(
+				#{map.relevanceId,jdbcType=VARCHAR},
+				#{map.subjectId,jdbcType=VARCHAR},
+				#{map.relMeetingId,jdbcType=VARCHAR},
+				#{map.relSubjectId,jdbcType=VARCHAR},
+				#{map.relMeetingName,jdbcType=VARCHAR},
+				#{map.relSubjectName,jdbcType=VARCHAR},
+				to_char(sysdate,'yyyy-MM-dd')
+			);
+		</foreach>
+		end;
+	</insert>
+	<!--查询关联议题 -->
+	<select id="getSubjectRelevance" parameterType="map"
+		resultType="map">
+		select
+		sr.RELEVANCE_ID "relevanceId",
+		sr.SUBJECT_ID
+		"subjectId",
+		sr.REL_MEETING_ID "relMeetingId",
+		sr.REL_SUBJECT_ID
+		"relSubjectId",
+		sr.REL_MEETING_NAME "relMeetingName",
+		sr.REL_SUBJECT_NAME "relSubjectName",
+		nvl(s.type_name,'') "meetingType"
+		from TIOL_SUBJECT_RELEVANCE sr
+		left join(
+			select m.meeting_id,t.type_name
+			from biz_tiol_meeting m,biz_tiol_meeting_type t 
+			where m.type_id=t.type_id
+		)s on sr.REL_MEETING_ID = s.meeting_id
+
+		where sr.SUBJECT_ID =
+		#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--查询关联议题 -->
+	<select id="getSubjectAfter" parameterType="map"
+		resultType="map">
+		select
+		tm.meeting_id as "meetingId" ,
+		tm.meeting_name as
+		"meetingName",
+		tmt.type_name as "typeName" ,
+		ts.subject_id as
+		"subjectId" ,
+		ts.subject_name as "subjectName"
+		from
+		TIOL_SUBJECT_RELEVANCE sr,
+		biz_tiol_subject ts ,
+		biz_tiol_meeting tm ,
+		biz_tiol_meeting_type tmt
+		where
+		sr.subject_id = ts.subject_id
+		and
+		ts.meeting_id = tm.meeting_id
+		and tm.type_id = tmt.type_id
+		and tm.status='1'
+		and ts.status='1'
+		and
+		sr.rel_subject_id = #{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<!--根据会议ID查询议题 -->
+	<select id="getSubjectByMeetingId" parameterType="map"
+		resultType="map">
+		select
+		T.SUBJECT_ID "subjectId",
+		T.MEETING_ID "meetingId",
+		T.SUBJECT_NAME "subjectName",
+		T.SOURCE_ID "sourceId",
+		NVL((select
+		SOURCE_NAME from BIZ_TIOL_SOURCE where SOURCE_ID=T.SOURCE_ID), '无')
+		"sourceName",
+		T.SPECIAL_ID "specialId",
+		NVL((select SPECIAL_NAME from
+		BIZ_TIOL_SPECIAL where SPECIAL_ID=T.SPECIAL_ID),
+		'无') "specialName",
+		T.PASS_FLAG "passFlag",
+		T.APPROVAL_FLAG "approvalFlag",
+		T.ADOPT_FLAG
+		"adoptFlag",
+		T.OPINION_FILE_ID "opinionFileId",
+		T.SUBJECT_FILE_ID
+		"subjectFileId",
+		T.SUBJECT_RESULT "subjectResult",
+		T.VERIFY_FLAG
+		"verifyFlag",
+		T.VIA_FLAG "viaFlag",
+		T.REMARK "remark",
+		to_char((select
+		WM_CONCAT(ATTENDANCE_NAME||':'||POSITION) from TIOL_ATTENDANCE where
+		SUBJECT_ID=T.SUBJECT_ID)) "attendance",
+		to_char((select
+		WM_CONCAT(DELIBERATION_PERSONNEL||':'||DELIBERATION_RESULT) from
+		TIOL_DELIBERATION where SUBJECT_ID=T.SUBJECT_ID)) "deliberation"
+		from
+		BIZ_TIOL_SUBJECT T where T.STATUS='1'
+		and T.MEETING_ID =
+		#{meetingId,jdbcType=VARCHAR}
+	</select>
+
+	<insert id="saveSubject" 	parameterType="com.zefu.tiol.pojo.Subject">
+		insert into BIZ_TIOL_SUBJECT
+		(
+		FID,
+		SUBJECT_ID,MEETING_ID,SUBJECT_NAME,
+		<if test="sourceId != null and sourceId != ''">
+            SOURCE_ID,
+        </if>
+        <if test="specialId != null and specialId != ''">
+            SPECIAL_ID,
+        </if>
+        <if test="passFlag != null and passFlag != ''">
+            PASS_FLAG,
+        </if>
+        <if test="approvalFlag != null and approvalFlag != ''">
+            APPROVAL_FLAG,
+        </if>
+        <if test="adoptFlag != null and adoptFlag != ''">
+            ADOPT_FLAG,
+        </if>
+        <if test="subjectResult != null and subjectResult != ''">
+            SUBJECT_RESULT,
+        </if>
+        <if test="remark != null and remark != ''">
+            REMARK,
+        </if>
+		STATUS
+		)
+		values
+		(
+		#{subjectId},#{subjectId},#{meetingId},#{subjectName},
+        <if test="sourceId != null and sourceId != ''">
+            #{sourceId},
+        </if>
+        <if test="specialId != null and specialId != ''">
+            #{specialId},
+        </if>
+        <if test="passFlag != null and passFlag != ''">
+            #{passFlag},
+        </if>
+        <if test="approvalFlag != null and approvalFlag != ''">
+            #{approvalFlag},
+        </if>
+        <if test="adoptFlag != null and adoptFlag != ''">
+            #{adoptFlag},
+        </if>
+        <if test="subjectResult != null and subjectResult != ''">
+            #{subjectResult},
+        </if>
+        <if test="remark != null and remark != ''">
+            #{remark},
+        </if>
+		1
+		)
+	</insert>
+	<!--根据主键查询议题 -->
+	<select id="getSubjectById" parameterType="java.lang.String"
+		resultType="map">
+		select
+		T.SUBJECT_ID "subjectId",
+		T.MEETING_ID "meetingId",
+		T.SUBJECT_NAME "subjectName",
+		T.SOURCE_ID "sourceId",
+		NVL((select
+		SOURCE_NAME from BIZ_TIOL_SOURCE where SOURCE_ID=T.SOURCE_ID), '无')
+		"sourceName",
+		T.SPECIAL_ID "specialId",
+		NVL((select SPECIAL_NAME from
+		BIZ_TIOL_SPECIAL where SPECIAL_ID=T.SPECIAL_ID),
+		'无') "specialName",
+		T.PASS_FLAG "passFlag",
+		T.APPROVAL_FLAG "approvalFlag",
+		T.ADOPT_FLAG
+		"adoptFlag",
+		T.OPINION_FILE_ID "opinionFileId",
+		T.SUBJECT_FILE_ID
+		"subjectFileId",
+		T.SUBJECT_RESULT "subjectResult",
+		T.VERIFY_FLAG
+		"verifyFlag",
+		T.VIA_FLAG "viaFlag",
+		T.REMARK "remark"
+		from
+		BIZ_TIOL_SUBJECT T where T.STATUS='1'
+		and T.SUBJECT_ID =
+		#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="removeItemRelevanceBySubejctId"
+		parameterType="java.lang.String">
+		delete from tiol_subject_item where
+		SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+	</delete>
+
+	<delete id="removeSubjectRelevanceBySubejctId"
+		parameterType="java.lang.String">
+		delete from tiol_subject_relevance
+		where
+		SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+	</delete>
+
+	<insert id="insertAttachment" parameterType="map">
+		insert into
+		TIOL_ATTACHMENT(ATTACHMENT_ID, ATTACHMENT_NAME, FILE_ID, BUSINESS_ID,
+		ATTACHMENT_TYPE, STATUS, CREATE_TIME, CREATE_USER)
+		VALUES(
+		#{attachmentId,jdbcType=VARCHAR},
+		#{attachmentName,jdbcType=VARCHAR},
+		#{fileId,jdbcType=VARCHAR},
+		#{businessId,jdbcType=VARCHAR},
+		#{attachmentType,jdbcType=VARCHAR},
+		'1',
+		to_char(sysdate, 'yyyy-MM-dd
+		HH24:mm'),
+		#{createUser,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<select id="getSubjectFileById" parameterType="java.lang.String"
+		resultType="map">
+		select
+		ATTACHMENT_ID "attachmentId",
+		ATTACHMENT_NAME
+		"attachmentName",
+		FILE_ID "fileId",
+		BUSINESS_ID "businessId",
+		ATTACHMENT_TYPE "attachmentType"
+		from TIOL_ATTACHMENT
+		where STATUS = '1'
+		and
+		BUSINESS_ID = #{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<update id="deleteSubjectFileByFileId"
+		parameterType="java.lang.String">
+		update TIOL_ATTACHMENT set STATUS = '0' where FILE_ID =
+		#{fileId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getAttachmentByType" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select file_id FILE_ID,attachment_name FILE_NAME from tiol_attachment
+		<where>
+			<if test="fileTypes != null and fileTypes.length > 0">
+				and attachment_type IN (
+				<foreach collection="fileTypes" separator="," item="item"
+					index="index">
+					#{item,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="businessId != null and businessId != ''">
+				and business_id = #{businessId,jdbcType=VARCHAR}
+			</if>
+		</where>
+	</select>
+</mapper>

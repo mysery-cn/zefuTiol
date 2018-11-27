@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.AttachmentMapper">
+	<insert id="insertAttachment" parameterType="map">
+		insert into TIOL_ATTACHMENT(ATTACHMENT_ID, ATTACHMENT_NAME, FILE_ID, BUSINESS_ID, ATTACHMENT_TYPE, STATUS, CREATE_TIME, CREATE_USER)
+		VALUES(
+			#{attachmentId,jdbcType=VARCHAR},
+			#{attachmentName,jdbcType=VARCHAR},
+			#{fileId,jdbcType=VARCHAR},
+			#{businessId,jdbcType=VARCHAR},
+			#{attachmentType,jdbcType=VARCHAR},
+			'1',
+			to_char(sysdate, 'yyyy-MM-dd HH24:mm'),
+			#{createUser,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<select id="getFileById" parameterType="java.lang.String" resultType="map">
+		select
+			ATTACHMENT_ID "attachmentId",
+			ATTACHMENT_NAME "attachmentName",
+			FILE_ID "fileId",
+			BUSINESS_ID "businessId",
+			ATTACHMENT_TYPE "attachmentType",
+			CREATE_TIME "uploadTime"
+		from TIOL_ATTACHMENT
+		where STATUS = '1' and BUSINESS_ID = #{subjectId,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getFileByFileId" parameterType="java.lang.String" resultType="map">
+		select
+			ATTACHMENT_ID "attachmentId",
+			ATTACHMENT_NAME "attachmentName",
+			FILE_ID "fileId",
+			BUSINESS_ID "businessId",
+			ATTACHMENT_TYPE "attachmentType",
+			CREATE_TIME "uploadTime"
+		from TIOL_ATTACHMENT
+		where FILE_ID = #{fileId,jdbcType=VARCHAR}
+	</select>
+
+	<update id="deleteFileByFileId" parameterType="java.lang.String">
+		update TIOL_ATTACHMENT set STATUS = '0' where FILE_ID in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+	
+	<select id="getAttachmentByType" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select file_id FILE_ID,attachment_name FILE_NAME  from tiol_attachment
+		<where>
+			<if test="fileTypes != null and fileTypes.length > 0">
+			    and attachment_type IN (
+				<foreach collection="fileTypes" separator="," item="item" index="index">
+				    #{item,jdbcType=VARCHAR}
+				</foreach>
+	            )
+			</if>
+			<if test="businessId != null and businessId != ''">
+			    and business_id =   #{businessId,jdbcType=VARCHAR}
+			</if>
+		</where>
+	</select>
+</mapper>

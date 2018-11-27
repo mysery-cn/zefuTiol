@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.GenerateXmlMapper">
+	
+	<select id="queryCatalogTree" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.CATALOG_ID as "catalogId",
+			   t.catalog_name as "catalog_name",
+			   nvl(t.catalog_code,'') as "catalog_code",
+			   t.order_number as "order_number",
+			   CATALOG_LEVEL as "catalog_level",
+			   status as "status"
+		from biz_tiol_catalog t 
+		where t.catalog_level = #{level}
+		<if test="catalogPid != null and catalogPid != ''">
+			and t.catalog_pid = #{catalogPid}
+		</if>
+		order by t.order_number
+	</select>
+	
+	<select id="getGzwItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select ti.ITEM_NAME as "item_name",tc.CATALOG_CODE as "catalog_code"
+		from BIZ_TIOL_ITEM ti 
+		left join BIZ_TIOL_CATALOG tc on ti.CATALOG_ID = tc.CATALOG_ID
+		where ti.COMPANY_ID = #{companyId} and ti.status = 1
+	</select>
+	
+	<select id="GenerateMeetingTypeXml" parameterType="java.util.Map" resultType="java.util.Map">
+		select TYPE_NAME as "type_name",GROUP_TYPE as "group_type" 
+		from BIZ_TIOL_MEETING_TYPE
+		order by ORDER_NUMBER asc
+	</select>
+	
+	<select id="GenerateRegulationTypeXml" parameterType="java.util.Map" resultType="String">
+		select TYPE_NAME from BIZ_TIOL_REGULATION_TYPE
+		order by ORDER_NUMBER asc
+	</select>
+	
+	<select id="GenerateSourceXml" parameterType="java.util.Map" resultType="String">
+		select SOURCE_NAME
+		from BIZ_TIOL_SOURCE
+	</select>
+	
+	<select id="GenerateSpecialXml" parameterType="java.util.Map" resultType="String">
+		select SPECIAL_NAME
+		from BIZ_TIOL_SPECIAL
+	</select>
+	
+	<select id="GenerateCompanyMemberXml" parameterType="String" resultType="java.util.Map">
+		select  MEMBER_ID as "member_id",       
+				NAME as "name",       
+				POSITION as "position",       
+				COMPANY_ID as "company_id",       
+				nvl(START_DATE,'至今') as "start_date",       
+				nvl(END_DATE,'至今') as "end_date",       
+				STATUS as "status"   
+				from BIZ_TIOL_COMPANY_MEMBER 
+		where COMPANY_ID = #{companyId} and GROUP_TYPE = #{groupType}
+		order by ORDER_NUMBER asc
+	</select>
+	
+	<select id="GenerateVoteModeXml" parameterType="java.util.Map" resultType="java.util.Map">
+		select MODE_NAME as "mode_name",
+			   nvl(MODE_RADIX,'') as "mode_radix",
+			   MODE_RATE as "mode_rate"
+		from TIOL_VOTE_MODE
+	</select>
+	
+	<select id="GenerateSubjectExceptionXml" parameterType="String" resultType="java.util.Map">
+		select
+		        ts.SID      as "subject_id"   ,
+		        ts.SUBJECT_NAME    as "subject_name" ,
+		        te.EXCEPTION_TYPE as "exception_type",
+		        te.EXCEPTION_CAUSE as "exception_cause"
+		from tiol_subject_exception te
+		left join biz_tiol_subject ts on te.subject_id = ts.subject_id
+		left join  biz_tiol_meeting tm on ts.meeting_id = tm.meeting_id
+		where tm.COMPANY_ID = #{companyId} and tm.status = 1 
+	</select>
+	
+	<select id="queryCompanyList" parameterType="java.util.Map" resultType="java.util.Map">
+		select COMPANY_ID as "companyId",
+		COMPANY_NAME as "companyName",
+		COMPANY_SHORT_NAME as "companyShortName" from T_UMS_MGR_COMPANY
+		where inst_id != 'ROOT'
+		order by DISPLAY_ORDER asc
+	</select>
+	
+	<select id="GenerateCompanyItemXml" parameterType="String" resultType="java.util.Map">
+		select 
+			   ti.ITEM_ID as "itemId",
+			   tc.CATALOG_CODE as "catalog_code",
+			   ti.ITEM_NAME as "item_name",
+			   ti.ITEM_CODE as "item_code",
+			   ti.LEGAL_FLAG as "legal_flag",
+			   ti.STATUS as "status"
+		from BIZ_TIOL_ITEM ti left join BIZ_TIOL_CATALOG tc on ti.CATALOG_ID = tc.CATALOG_ID
+		where COMPANY_ID = #{companyId} and ti.status = 1
+	</select>
+	
+	<select id="GenerateItemMeetingTypeXml" parameterType="String" resultType="String">
+		select 
+			tt.TYPE_NAME
+		from TIOL_ITEM_MEETING tm 
+		left join BIZ_TIOL_MEETING_TYPE tt on tt.TYPE_ID = tm.TYPE_ID
+		where tm.ITEM_ID = #{itemId}
+		order by tt.ORDER_NUMBER asc 
+	</select>
+	
+	<select id="getConfigValue" parameterType="java.util.Map" resultType="String">
+		select CONFIG_VALUE from T_BUSINESS_CONFIG
+		where RANGE_ID = #{rangeId} and CONFIG_KEY = #{CONFIG_KEY} and APPID = #{appId}
+	</select>
+	
+	<insert id="saveCatalogData" parameterType="java.util.Map">
+		insert into BIZ_TIOL_CATALOG
+		(FID,CATALOG_ID,CATALOG_PID,CATALOG_NAME,CATALOG_CODE,CATALOG_LEVEL,ORDER_NUMBER,STATUS,CREATE_TIME)
+		values
+		(#{catalogId},#{catalogId},#{CATALOG_PID},#{catalog_name},#{catalog_code},#{catalog_level},#{order_number},1,sysdate)
+	</insert>
+	
+	<insert id="saveCompanyMember" parameterType="java.util.Map">
+		insert into BIZ_TIOL_COMPANY_MEMBER
+		(FID,MEMBER_ID,NAME,POSITION,COMPANY_ID,START_DATE,END_DATE,GROUP_TYPE,STATUS,ORDER_NUMBER)
+		values
+		(#{member_id},#{member_id},#{name},#{position},#{company_id},#{start_date},#{end_date},
+		 #{group_type},#{status},#{order_number})
+	</insert>
+	
+	<select id="queryCatalogId" parameterType="String" resultType="String">
+		select CATALOG_ID from BIZ_TIOL_CATALOG where CATALOG_CODE = #{catalogCode}
+	</select>
+	
+	<insert id="saveItem" parameterType="java.util.Map">
+		insert into BIZ_TIOL_ITEM
+		(
+			FID,ITEM_ID,CATALOG_ID,ITEM_NAME,ITEM_CODE,ORDER_NUMBER,LEGAL_FLAG,COMPANY_ID,STATUS,CREATE_TIME
+		)
+		values
+		(
+			#{itemId},#{itemId},#{catalog_id},#{item_name},#{item_code},#{orderNumber},#{legal_flag},#{companyId},1,sysdate
+		)
+	</insert>
+	
+	<select id="queryMeetingTypeId" parameterType="String" resultType="String">
+		select TYPE_ID from BIZ_TIOL_MEETING_TYPE where TYPE_NAME = #{meetingTypeName} and STATUS = 1
+	</select>
+	
+	<insert id="saveItemMeeting" parameterType="java.util.Map">
+		insert into TIOL_ITEM_MEETING
+		(
+			ITEM_MEETING_ID,ITEM_ID,TYPE_ID,ORDER_NUMBER
+		)
+		values
+		(
+			#{item_meeting_id},#{item_id},#{meetingTypeId},#{order}
+		)
+	</insert>
+	
+	<insert id="saveMeetingType" parameterType="java.util.Map">
+		insert into BIZ_TIOL_MEETING_TYPE
+		(FID,TYPE_ID,TYPE_NAME,GROUP_TYPE,STATUS,CREATE_TIME,ORDER_NUMBER)
+		values
+		(#{TYPE_ID},#{TYPE_ID},#{TYPE_NAME},#{GROUP_TYPE},1,sysdate,#{ORDER_NUMBER})
+	</insert>
+	
+	<insert id="saveRegulationType" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION_TYPE
+		(FID,TYPE_ID,TYPE_NAME,STATUS,CREATE_TIME,ORDER_NUMBER)
+		values
+		(#{TYPE_ID},#{TYPE_ID},#{TYPE_NAME},1,sysdate,#{ORDER_NUMBER})
+	</insert>
+	
+	<insert id="saveSource" parameterType="java.util.Map">
+		insert into BIZ_TIOL_SOURCE
+		(FID,SOURCE_ID,SOURCE_NAME,STATUS,CREATE_TIME)
+		values
+		(#{TYPE_ID},#{TYPE_ID},#{TYPE_NAME},1,sysdate)
+	</insert>
+	
+	<insert id="saveSubjectException" parameterType="java.util.Map">
+		insert into TIOL_SUBJECT_EXCEPTION
+		(EXCEPTION_ID,SUBJECT_ID,EXCEPTION_TYPE,EXCEPTION_CAUSE)
+		values
+		(#{exceptionId},#{subjectId},#{exceptionType},#{exceptionCause})
+	</insert>
+	
+	<insert id="saveVoteModel" parameterType="java.util.Map">
+		insert into TIOL_VOTE_MODE
+		(MODE_ID,MODE_NAME,MODE_RADIX,MODE_RATE,STATUS,CREATE_TIME)
+		values
+		(#{mode_id},#{mode_name},#{mode_radix},#{mode_rate},1,sysdate)
+	</insert>
+	
+	<insert id="saveSpecial" parameterType="java.util.Map">
+		insert into BIZ_TIOL_SPECIAL
+		(FID,SPECIAL_ID,SPECIAL_NAME,STATUS,CREATE_TIME)
+		values
+		(#{TYPE_ID},#{TYPE_ID},#{special_name},1,sysdate)
+	</insert>
+
+    <select id="checkExist" parameterType="String" resultType="Integer">
+        select  count(ITEM_ID) from BIZ_TIOL_ITEM where ITEM_NAME = #{itemName}
+    </select>
+
+    <select id="queryCatalogDetail" parameterType="String" resultType="String">
+        select CATALOG_ID as "catalogId" from BIZ_TIOL_CATALOG
+        where CATALOG_NAME = #{catalogName} and  CATALOG_LEVEL = #{catalogLevel}
+    </select>
+
+    <select id="checkMeetingTypeExist" parameterType="String" resultType="Integer">
+        select  count(mt.TYPE_ID) from BIZ_TIOL_MEETING_TYPE mt where mt.TYPE_NAME = #{meetingTypeName}
+    </select>
+
+    <select id="checkRegulationTypeExist" parameterType="String" resultType="Integer">
+        select  count(TYPE_ID) from BIZ_TIOL_REGULATION_TYPE where TYPE_NAME = #{regulationTypeName}
+    </select>
+
+    <select id="checkSourceExist" parameterType="String" resultType="Integer">
+        select  count(SOURCE_ID) from BIZ_TIOL_SOURCE where  SOURCE_NAME = #{sourceName}
+    </select>
+
+    <select id="checkSprcialExist" parameterType="String" resultType="Integer">
+        select  count(SPECIAL_ID) from BIZ_TIOL_SPECIAL where  SPECIAL_NAME = #{sprcialName}
+    </select>
+
+    <select id="checkSubjectExceptionExist" parameterType="String" resultType="Integer">
+        select  count(te.EXCEPTION_ID) from TIOL_SUBJECT_EXCEPTION te where te.SUBJECT_ID = #{subjectId}
+    </select>
+
+    <select id="checkVoteModelExist" parameterType="String" resultType="Integer">
+        select  count(te.MODE_ID) from TIOL_VOTE_MODE te where te.MODE_NAME = #{modeName}
+    </select>
+
+
+
+
+
+	
+</mapper>
+	

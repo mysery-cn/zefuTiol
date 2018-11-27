@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.ExceptionMapper">
+
+	<select id="queryException" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+        count(e.company_id)       as "companyNum",
+        WM_CONCAT(e.company_id)   as "companyIds",
+        e.exception_type          as "name"      ,
+        sum(nvl(e.quantity, 0)) as "value"
+		from
+		        tiol_statistics_exception e
+        left join 
+        		t_ums_mgr_company c on e.company_id = c.company_id
+   		<where>
+			<if test="industryId != null and industryId != ''">
+				c.INST_ID = #{industryId, jdbcType=VARCHAR}
+			</if>
+		</where>
+		group by
+		        e.exception_type
+	</select>
+	
+	<select id="queryCompanyByRegulationType" parameterType="java.util.Map" resultType="Integer">
+		select
+		        count(*)
+		from
+		        t_ums_mgr_company c
+		left join
+		        (
+		                select
+		                        company_id              ,
+		                        count(unique type_id) cn,
+		                        total
+		                from
+		                        biz_tiol_regulation r,
+		                        (
+		                                select
+		                                        count(*) total
+		                                from
+		                                        biz_tiol_regulation_type
+		                                where
+		                                        upload_flag = '1'
+		                        )
+		                group by
+		                        company_id,
+		                        total
+		        )
+		        n
+		on
+		        n.company_id = c.company_id
+		where c.inst_level='2'
+		      and  (n.cn &lt; n.total
+		     or n.cn is null)
+			<if test="industryId != null and industryId != ''">
+				and c.INST_ID = #{industryId, jdbcType=VARCHAR}
+			</if>
+	</select>
+	
+	<select id="querySubjectExceptionByPage" parameterType="java.util.Map" resultType="java.util.Map">
+	select n.* from(
+	select m.*,rownum rn from (
+	    select
+	        c.company_short_name ,
+	        c.company_id ,
+	        sum(decode(nvl(exception_type, 0), 1, 1, 0)) as "type1",
+	        sum(decode(nvl(exception_type, 0), 2, 1, 0)) as "type2",
+	        sum(decode(nvl(exception_type, 0), 3, 1, 0)) as "type3",
+	        sum(decode(nvl(exception_type, 0), 4, 1, 0)) as "type4",
+	        sum(decode(nvl(exception_type, 0), 5, 1, 0)) as "type5"
+	    from
+	        t_ums_mgr_company c
+	    left join
+	        (
+	            select
+	                e.exception_type,
+	                m.company_id,
+	                e.subject_id
+	            from
+	                tiol_subject_exception e,
+	                biz_tiol_subject s ,
+	                biz_tiol_meeting m ,
+	                tiol_subject_item i ,
+	                biz_tiol_item t
+	            where
+	                e.subject_id=s.subject_id
+	                and s.meeting_id=m.meeting_id
+	                and i.subject_id  =s.subject_id
+	                and t.item_id=i.item_id
+	                and s.status='1' and m.status='1' and t.status='1'
+	                <if test="catalogList != null and catalogList.size() > 0">
+		                and t.catalog_id in (
+		                <foreach collection="catalogList" separator="," item="item"
+			                index="index">
+			                #{item.CATALOG_ID,jdbcType=VARCHAR}
+		                </foreach>
+		                )
+	                </if>
+	                <if test="meetingTypeList != null and meetingTypeList.size() > 0">
+		                and m.TYPE_ID IN (
+		                <foreach collection="meetingTypeList" separator="," item="item"
+			                index="index">
+			                #{item.TYPE_ID,jdbcType=VARCHAR}
+		                </foreach>
+		                )
+	                </if>
+	                group by e.exception_type,m.company_id,e.subject_id
+	            )t on c.company_id = t.company_id
+	where
+	    c.inst_level = 2
+	<if test="companyName != null and companyName != ''">
+		and c.company_short_name like '%' || #{companyName, jdbcType=VARCHAR} ||
+		'%'
+	</if>
+	<if test="companyList != null and companyList.size() > 0">
+		and c.company_id IN (
+		<foreach collection="companyList" separator="," item="item"
+			index="index">
+			#{item.COMPANY_ID,jdbcType=VARCHAR}
+		</foreach>
+		)
+	</if>
+	    group by
+	    c.company_short_name,c.company_id,
+	    c.DISPLAY_ORDER
+	    order by
+	    c.DISPLAY_ORDER
+	    ) m) n
+	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,jdbcType=INTEGER}
+	</select>
+	
+	<select id="getSubjectExceptionTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select
+		        count(*)
+		from
+		        (
+		                select
+		                        c.company_short_name                                   ,
+		                        sum(decode(nvl(exception_type, 0), 1, 1, 0)) as "type1",
+		                        sum(decode(nvl(exception_type, 0), 2, 1, 0)) as "type2",
+		                        sum(decode(nvl(exception_type, 0), 3, 1, 0)) as "type3",
+		                        sum(decode(nvl(exception_type, 0), 4, 1, 0)) as "type4",
+		                        sum(decode(nvl(exception_type, 0), 5, 1, 0)) as "type5"
+		                from
+		                        t_ums_mgr_company c
+		                left join
+		                        (
+		                                select
+	                                        e.exception_type,
+	                                        m.company_id,
+	                                        e.subject_id
+	                                    from
+	                                        tiol_subject_exception e,
+	                                        biz_tiol_subject s ,
+	                                        biz_tiol_meeting m ,
+	                                        tiol_subject_item i ,
+	                                        biz_tiol_item t
+	                                    where
+	                                        e.subject_id=s.subject_id
+	                                        and s.meeting_id=m.meeting_id
+	                                        and i.subject_id  =s.subject_id
+	                                        and t.item_id=i.item_id
+	                                        and s.status='1' and m.status='1' and t.status='1'
+	                                        <if test="catalogList != null and catalogList.size() > 0">
+		                                        and t.catalog_id in (
+		                                        <foreach collection="catalogList" separator="," item="item"
+			                                        index="index">
+			                                        #{item.CATALOG_ID,jdbcType=VARCHAR}
+		                                        </foreach>
+		                                        )
+	                                        </if>
+	                                        <if test="meetingTypeList != null and meetingTypeList.size() > 0">
+		                                        and m.TYPE_ID IN (
+		                                        <foreach collection="meetingTypeList" separator="," item="item"
+			                                        index="index">
+			                                        #{item.TYPE_ID,jdbcType=VARCHAR}
+		                                        </foreach>
+		                                        )
+	                                        </if>
+	                                        group by e.exception_type,m.company_id,e.subject_id
+		                        )
+		                        t
+		                on
+		                        c.company_id = t.company_id
+		                where
+		                        c.inst_level = 2
+		                        <if test="companyName != null and companyName != ''">
+									and c.company_short_name like '%' || #{companyName, jdbcType=VARCHAR} || '%'
+								</if>
+								<if test="companyList != null and companyList.size() > 0">
+									and c.company_id IN (
+									<foreach collection="companyList" separator="," item="item"
+										index="index">
+										#{item.COMPANY_ID,jdbcType=VARCHAR}
+									</foreach>
+									)
+								</if>
+		                group by
+		                        c.company_short_name,
+		                        c.DISPLAY_ORDER
+		                order by
+		                        c.DISPLAY_ORDER
+		        )
+	</select>
+	
+	<select id="queryExceptionType" resultType="java.lang.String">
+		select config_value as "exceptionType" from t_business_config where config_key = 'cfg_exception_type'
+	</select>
+	
+	<select id="querySubjectListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+		select  rownum,
+        		bs.subject_id                                        as "subjectId"     ,
+        		bs.subject_name                                      as "subjectName"   ,
+        		e.exception_type                                     as "exceptionType" ,
+        		e.exception_cause                                    as "exceptionCause",
+        		bm.meeting_name                                      as "meetingName"   ,
+        		bm.meeting_id                                        as "meetingId"     ,
+        		bm.COMPANY_ID                                        as "companyId"     ,
+        		to_char(nvl(bm.MEETING_TIME, sysdate), 'yyyy-mm-dd') as "createDate"
+		from tiol_subject_exception e
+		inner join biz_tiol_subject bs on bs.subject_id = e.subject_id
+		inner join biz_tiol_meeting bm on bs.meeting_id = bm.meeting_id
+		inner join tiol_subject_item tsi on tsi.subject_id = bs.subject_id
+		inner join biz_tiol_item bti on bti.item_id = tsi.item_id
+   		<where>
+   			e.confirm_flag='1' and bs.status = '1' and bm.status='1' and bti.status='1'
+			<if test="companyId != null and companyId != ''">
+				and bm.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bs.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+				and trunc(bm.meeting_time) &gt;= to_date(#{startTime},'yyyy-mm-dd')
+			</if>
+			<if test="endTime != null and endTime !=''">
+				and trunc(bm.meeting_time) &lt;= to_date(#{endTime},'yyyy-mm-dd')
+			</if>
+			<if test="exceptionType != null and exceptionType !=''">
+				and e.exception_type = #{exceptionType, jdbcType=VARCHAR}
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and bm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and bm.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+		group by  rownum,bs.subject_id, bs.subject_name,e.exception_type,e.exception_cause,bm.meeting_name,bm.meeting_id,
+        bm.COMPANY_ID,bm.MEETING_TIME
+		) m
+		where rownum &gt; #{minRow, jdbcType=INTEGER} and rownum &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="querySubjectListTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select
+		       	count(*)
+		from(
+		select  bs.subject_id,e.exception_type,e.exception_cause
+		from tiol_subject_exception e
+		inner join biz_tiol_subject bs on bs.subject_id = e.subject_id
+		inner join biz_tiol_meeting bm on bs.meeting_id = bm.meeting_id
+		inner join tiol_subject_item tsi on tsi.subject_id = bs.subject_id
+		inner join biz_tiol_item bti on bti.item_id = tsi.item_id
+   		<where>
+   			e.confirm_flag='1' and bs.status = '1' and bm.status='1' and bti.status='1'
+			<if test="companyId != null and companyId != ''">
+				and bm.COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				and bs.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="startTime != null and startTime !=''">
+				and trunc(bm.meeting_time) &gt;= to_date(#{startTime},'yyyy-mm-dd')
+			</if>
+			<if test="endTime != null and endTime !=''">
+				and trunc(bm.meeting_time) &lt;= to_date(#{endTime},'yyyy-mm-dd')
+			</if>
+			<if test="exceptionType != null and exceptionType !=''">
+				and e.exception_type = #{exceptionType, jdbcType=VARCHAR}
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+				and bti.catalog_id in (
+				<foreach collection="catalogList" separator="," item="item"
+					index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				and bm.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item"
+					index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				and bm.company_id IN (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+		</where>
+		group by  bs.subject_id,e.exception_type,e.exception_cause
+		)
+	</select>
+</mapper>

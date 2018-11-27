@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.InterfaceMapper">
+
+	<select id="queryInterfaceByPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select *
+		from (select rownum r, e1.*
+		from (
+			SELECT * FROM TIOL_SERVICE_INTERFACE
+			<if test="searchKey != '' and searchKey != null">
+				WHERE INTERFACE_NAME LIKE '%'||#{searchKey}||'%'
+			</if>
+		) e1
+		where rownum &lt;= #{maxRow, jdbcType=INTEGER})
+		where r >= #{minRow,jdbcType=INTEGER}
+	</select>
+
+	<select id="getInterfaceTotalCount" parameterType="java.util.Map"
+		resultType="Integer">
+		SELECT COUNT(*) FROM TIOL_SERVICE_INTERFACE
+        <if test="searchKey != '' and searchKey != null">
+            WHERE INTERFACE_NAME LIKE '%'||#{searchKey}||'%'
+        </if>
+	</select>
+
+	<!-- 新增服务接口 -->
+	<insert id="saveInterface" parameterType="java.util.Map">
+		insert into TIOL_SERVICE_INTERFACE(INTERFACE_ID,INTERFACE_NAME,INTERFACE_TYPE,INTERFACE_URL,INTERFACE_USER,INTERFACE_PASSWORD)
+		values (#{INTERFACE_ID},#{INTERFACE_NAME},#{INTERFACE_TYPE},#{INTERFACE_URL},#{INTERFACE_USER},#{INTERFACE_PASSWORD})
+	</insert>
+</mapper>
+	

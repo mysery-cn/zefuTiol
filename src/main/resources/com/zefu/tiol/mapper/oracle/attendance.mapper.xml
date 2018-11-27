@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.AttendanceMapper">
+	<!--批量插入审议结果-->
+	<insert id="batchInsertAttendance" parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="attendance" index="index">
+			insert into TIOL_ATTENDANCE(
+			ATTENDANCE_ID,MEETING_ID,SUBJECT_ID,ATTENDANCE_NAME,"POSITION",COUNSEL_TYPE) values
+			(
+				#{attendance.attendanceId,jdbcType=VARCHAR},
+				#{attendance.meetingId,jdbcType=VARCHAR},
+				#{attendance.subjectId,jdbcType=VARCHAR},
+				#{attendance.attendanceName,jdbcType=VARCHAR},
+				#{attendance.position,jdbcType=VARCHAR},
+				#{attendance.counselType,jdbcType=VARCHAR}
+			);
+		</foreach>
+		end;
+	</insert>
+
+	<select id="getAttendanceList" parameterType="map" resultType="map">
+		select
+			ATTENDANCE_ID "attendanceId",
+			MEETING_ID "meetingId",
+			SUBJECT_ID "subjectId",
+			ATTENDANCE_NAME "attendanceName",
+			"POSITION" "position",
+			COUNSEL_TYPE "counselType"
+		from TIOL_ATTENDANCE
+		where SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteAttendanceBySubejctId" parameterType="java.lang.String">
+		delete from TIOL_ATTENDANCE where SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+	</delete>
+</mapper>
+	

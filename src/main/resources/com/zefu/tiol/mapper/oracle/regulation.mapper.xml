@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.RegulationMapper">
+
+	<select id="queryRegulationList" parameterType="java.util.Map" resultType="java.util.Map">
+		select type_name,to_char(wm_concat(regulation_name)) as regulation_name,
+        to_char(wm_concat(file_id)) as file_id from (
+		select * from (select r.regulation_name, rt.type_name, rt.order_number,
+        r.file_id, rt.type_id
+		from biz_tiol_regulation_type rt
+		left join biz_tiol_regulation r
+		on r.type_id = rt.type_id
+		and r.status = 1
+		<if test="companyId != null and companyId !=''">
+		 	and r.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		where rt.status = 1
+		order by r.effective_date desc)
+		order by order_number asc)
+		group by type_name
+	</select>
+
+	<select id="queryListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		Select t.* from (SELECT ROWNUM RN,t.* FROM biz_tiol_regulation t
+			where t.status = 1
+			<if test="companyId != null and companyId != ''">
+				and COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+			</if>
+		order by COMPANY_ID)t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="getTotalCount" parameterType="String" resultType="Integer">
+		Select count(*) total FROM biz_tiol_regulation t
+		where t.status = 1
+		<if test="companyId != null and companyId != ''">
+			and COMPANY_ID = #{companyId, jdbcType=VARCHAR}
+		</if>
+	</select>
+
+	<select id="querRegulationPageList" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+			select br.REGULATION_ID,br.REGULATION_NAME,nvl(br.APPROVAL_DATE,'') as "APPROVAL_DATE",
+			nvl(br.EFFECTIVE_DATE,'') as "EFFECTIVE_DATE",tc.COMPANY_SHORT_NAME,bt.TYPE_NAME,ROWNUM rn
+			from BIZ_TIOL_REGULATION br
+			left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+			left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+			where br.status = 1
+			<if test="companyName != null and companyName != ''">
+				and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="typeID != null and typeID != ''">
+				and bt.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+			</if>
+			<if test="companyID != null and companyID != ''">
+				and br.COMPANY_ID in
+				<foreach collection="companyID" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			order by br.COMPANY_ID
+		) m	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+		order by rn
+	</select>
+
+	<select id="querRegulationPageListCount" parameterType="java.util.Map" resultType="Integer">
+		select count(br.REGULATION_ID) from BIZ_TIOL_REGULATION br
+			left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+			left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+			where br.status = 1
+			<if test="companyName != null and companyName != ''">
+				and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="typeID != null and typeID != ''">
+				and bt.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+			</if>
+			<if test="companyID != null and companyID != ''">
+				and br.COMPANY_ID in
+				<foreach collection="companyID" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+	</select>
+
+	<select id="queryRegulationDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select br.REGULATION_ID,br.REGULATION_NAME,
+		nvl(br.APPROVAL_DATE,'') as "APPROVAL_DATE",
+		nvl(br.EFFECTIVE_DATE,'') as "EFFECTIVE_DATE",
+		tc.COMPANY_SHORT_NAME,bt.TYPE_NAME,tc.COMPANY_NAME|| '-'||br.REGULATION_NAME as "title",
+		nvl(br.RATE,'') as "rate",nvl(tf.FILE_NAME,'') as "fileName",nvl(br.FILE_ID,'') as FILE_ID,
+		decode(br.AUDIT_FLAG,1,'是',0,'否','') as "auditFlag"
+		from BIZ_TIOL_REGULATION br
+		left join BIZ_TIOL_REGULATION_TYPE bt on br.TYPE_ID = bt.TYPE_ID
+		left join T_UMS_MGR_COMPANY tc on br.COMPANY_ID = tc.COMPANY_ID
+		left join T_FILESYS_FILES tf on br.FILE_ID = tf.FILE_ID
+		where br.REGULATION_ID = #{regulationID, jdbcType=VARCHAR} and br.status = 1
+	</select>
+
+	<select id="queryAuditFileList" parameterType="java.util.Map" resultType="java.util.Map">
+		select ta.FILE_ID,ta.ATTACHMENT_NAME
+		from TIOL_ATTACHMENT ta
+		where ta.business_id = #{regulationID, jdbcType=VARCHAR}
+		and ta.attachment_type='制度佐证材料'
+	</select>
+
+	<select id="queryVoteModeList" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+			tv.item_id as "itemId",
+			nvl(bi.item_name,'-') as "itemName",
+			nvl(bi.item_code,'默认') as "itemCode",
+			nvl(tm.mode_name,'默认') as "modeName",
+			tv.mode_id as "mode_id"
+		from TIOL_REGULATION_VOTE tv
+		left join TIOL_VOTE_MODE tm on tv.mode_id = tm.mode_id
+		left join BIZ_TIOL_ITEM bi  on tv.item_id = bi.item_id
+		where tv.REGULATION_ID = #{regulationID, jdbcType=VARCHAR}
+	</select>
+
+	<select id="queryRegulationTypeDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select type_name as "typeName",
+			   type_code as "typeCode",
+			   upload_flag as "uploadFlag",
+			   type_id as "typeId",
+			   order_number as "orderNumber"
+		from BIZ_TIOL_REGULATION_TYPE where type_id = #{typeId}
+	</select>
+
+	<delete id="deleteRegulationType" parameterType="java.util.Map">
+		delete from BIZ_TIOL_REGULATION_TYPE where type_id in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<update id="updateRegulationType" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION_TYPE set
+			   type_name = #{typeName},
+			   type_code = #{typeCode},
+			   upload_flag = #{uploadFlag},
+			   order_number = #{orderNumber}
+		where type_id = #{typeId}
+	</update>
+
+	<insert id="saveRegulationType" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION_TYPE
+		(fid,type_id,type_code,type_name,upload_flag,status,create_time,create_user,order_number)
+		values
+		(#{FID},#{FID},#{typeCode},#{typeName},#{uploadFlag},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR},#{orderNumber})
+	</insert>
+
+	<select id="queryRegulationTypeListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (
+			select type_name as "typeName",
+			   type_code as "typeCode",
+			   upload_flag as "uploadFlag",
+			   type_id as "typeId",
+			   ROWNUM rn
+			from BIZ_TIOL_REGULATION_TYPE
+			order by order_number
+		) m	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="queryRegulationTypeTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select count(type_id) from BIZ_TIOL_REGULATION_TYPE
+	</select>
+
+	<update id="updateRegulation" parameterType="java.util.Map">
+		update BIZ_TIOL_REGULATION set
+		<trim suffixOverrides=",">
+			<if test="REGULATION_NAME != null">
+				regulation_name = #{REGULATION_NAME},
+			</if>
+			<if test="TYPE_ID != null">
+				type_id = #{TYPE_ID},
+			</if>
+			<if test="COMPANY_ID != null">
+				company_id = #{COMPANY_ID},
+			</if>
+			<if test="APPROVAL_DATE != null">
+				approval_date = #{APPROVAL_DATE},
+			</if>
+			<if test="EFFECTIVE_DATE != null">
+				effective_date = #{EFFECTIVE_DATE},
+			</if>
+			<if test="AUDIT_FLAG != null">
+				audit_flag = #{AUDIT_FLAG},
+			</if>
+			<if test="AUDIT_FILE_ID != null">
+				audit_file_id = #{AUDIT_FILE_ID},
+			</if>
+			<if test="RATE != null">
+				rate = #{RATE},
+			</if>
+			<if test="FILE_ID != null">
+				file_id = #{FILE_ID},
+			</if>
+			<if test="STATUS != null">
+				status = #{STATUS},
+			</if>
+			<if test="UPDATE_TIME != null">
+				update_time = #{UPDATE_TIME},
+			</if>
+			<if test="UPDATE_USER != null">
+				update_user = #{UPDATE_USER},
+			</if>
+			<if test="REMARK != null">
+				remark = #{REMARK},
+			</if>
+			<if test="SID != null">
+				SID = #{SID},
+			</if>
+			<if test="UPLOAD_STATUS != null">
+				UPLOAD_STATUS = #{UPLOAD_STATUS},
+			</if>
+		</trim>
+		<choose>
+			<when test="REGULATION_ID != null">
+				where regulation_id = #{REGULATION_ID}
+			</when>
+			<otherwise>
+				where SID = #{SID} and status = 1
+			</otherwise>
+		</choose>
+	</update>
+
+	<insert id="insertRegulation" parameterType="java.util.Map">
+		insert into BIZ_TIOL_REGULATION
+		(fid,regulation_id,regulation_name,type_id,company_id,approval_date,effective_date,audit_flag,audit_file_id,rate,file_id,status,remark)
+		values(#{regulationId,jdbcType=VARCHAR},#{regulationId,jdbcType=VARCHAR},#{regulationName,jdbcType=VARCHAR},#{typeCode,jdbcType=VARCHAR},
+			   #{companyId,jdbcType=VARCHAR},#{approvalDate,jdbcType=VARCHAR},#{effectiveDate,jdbcType=VARCHAR},#{auditFlag,jdbcType=VARCHAR},
+			   #{auditFile,jdbcType=VARCHAR},#{rate,jdbcType=VARCHAR},#{file,jdbcType=VARCHAR},'1',#{remark,jdbcType=VARCHAR})
+	</insert>
+
+	<insert id="batchInsertRegulationVote" parameterType="java.util.List">
+		 insert into TIOL_REGULATION_VOTE(vote_id, regulation_id, item_id, mode_id)
+	     values
+		 <foreach collection="list" item="regulationVote" index="index" separator=",">
+			 (
+			 #{regulationVote.voteId,jdbcType=VARCHAR},
+			 #{regulationVote.regulationId,jdbcType=VARCHAR},
+			 #{regulationVote.itemId,jdbcType=VARCHAR},
+			 #{regulationVote.modeId,jdbcType=VARCHAR}
+			)
+		 </foreach>
+	</insert>
+	
+	<select id="queryRegulationTypeList" parameterType="java.util.Map" resultType="java.util.Map">
+		select TYPE_ID as "id",TYPE_NAME as "text",TYPE_CODE as "code" from BIZ_TIOL_REGULATION_TYPE where status = 1
+	</select>
+	
+	
+	<select id="queryRegulationByIds" parameterType="String" resultType="java.util.Map">
+		SELECT R.REGULATION_ID,R.REGULATION_NAME,T.TYPE_NAME,R.APPROVAL_DATE,
+		R.EFFECTIVE_DATE,R.AUDIT_FLAG,R.RATE,R.REMARK,R.STATUS,R.FILE_ID,F.FILE_NAME,R.UPLOAD_STATUS
+		 FROM BIZ_TIOL_REGULATION_TYPE T,BIZ_TIOL_REGULATION R
+		 LEFT JOIN T_FILESYS_FILES F ON F.FILE_ID = R.FILE_ID
+		 WHERE R.TYPE_ID=T.TYPE_ID AND R.REGULATION_ID IN  
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		AND COMPANY_ID = #{companyId}
+	</select>
+	
+	<select id="getMaterialFile" parameterType="String" resultType="java.util.Map">
+		SELECT FILE_ID,ATTACHMENT_NAME
+		 FROM TIOL_ATTACHMENT 
+		WHERE BUSINESS_ID = #{regulationId}
+	</select>
+	
+	<select id="queryProcedure" parameterType="String" resultType="java.util.Map">
+		SELECT R.REGULATION_ID,R.REGULATION_NAME,T.TYPE_NAME,R.APPROVAL_DATE,
+		R.EFFECTIVE_DATE,R.AUDIT_FLAG,R.RATE,R.REMARK,R.STATUS,R.FILE_ID,R.UPLOAD_STATUS
+		 FROM BIZ_TIOL_REGULATION_TYPE T,BIZ_TIOL_REGULATION R
+		 WHERE R.TYPE_ID=T.TYPE_ID AND T.TYPE_NAME like '%议事规则%' 
+		AND R.COMPANY_ID = #{companyId} and R.STATUS='1'
+		order by EFFECTIVE_DATE desc
+	</select>
+</mapper>
+	

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration debug="false">
+	 <!-- 模块名称， 影响日志配置名，日志文件名 --> 
+	<property name="appName" value="szyd"/>
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->  
+    <property name="rootPath" value="d:\\tmp\\logs" />  
+     <!--控制台输出 --> 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss}|%t|%p| %m |%logger:%L%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->   
+    <appender name="FILEINFO"  class="ch.qos.logback.core.rolling.RollingFileAppender">   
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${rootPath}/${appName}/%d{yyyy-MM-dd}.%i.log</FileNamePattern> 
+            <!--日志文件保留天数-->
+            <MaxHistory>30</MaxHistory>
+            <maxFileSize>100MB</maxFileSize> 
+            <totalSizeCap>4GB</totalSizeCap> 
+        </rollingPolicy>   
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> 
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符--> 
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>   
+        </encoder> 
+    </appender> 
+
+    <!-- 为某个包下的所有类的指定Appender 这里也可以指定类名称例如：com.aa.bb.ClassName,下面还有另一种写法，就是涉及到name="关键包的日志输出级别" -->  
+    
+    <!-- 将oa日志打印到控制台和输出到日志文件，包括sql语句 -->
+    <logger name="com.zefu.tiol" level="DEBUG" additivity="false">
+          <appender-ref ref="STDOUT" />
+           <appender-ref ref="FILEINFO" /> 
+    </logger>
+     <!-- 将gap日志打印到控制台和输出到日志文件，包括sql语句 -->
+    <logger name="com.yr.gap" level="INFO" additivity="false">
+          <appender-ref ref="STDOUT" />
+           <appender-ref ref="FILEINFO" /> 
+    </logger>
+    <!-- 将bubbo日志输出到控制台和日志文件 -->
+    <logger name="com.alibaba.dubbo" additivity="false">
+    	<level value="INFO" />  
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILEINFO" /> 
+    </logger>
+    <logger name="jdbc" level="INFO"/>
+    <logger name="org" level="INFO"/>
+    <logger name="net" level="INFO"/>
+    <logger name="sql" level="INFO"/>
+    <logger name="java.sql" level="INFO"/>
+    <logger name="javax" level="INFO"/>
+
+    <!--日志的输出级别由低到高（越来问题越严重）trace->debug->info->warn->error -->
+    <!-- root将级别为DEBUG及大于DEBUG的日志信息交给已经配置好的name='STDOUT'的appender处理，将信息打印到控制台-Console -->  
+    <root level="INFO">
+    	<!-- appender-ref标识这个appender将会添加到本应用的日志系统中 -->
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILEINFO"/>
+    </root>
+</configuration>

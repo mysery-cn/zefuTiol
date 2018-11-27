@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.PreDataMapper">
+
+	<resultMap id="preItem" type="com.zefu.tiol.pojo.PreItem">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="ITEM_ID" property="itemId" jdbcType="VARCHAR" />
+		<result column="ITEM_NAME" property="itemName"
+			jdbcType="VARCHAR" />
+		<result column="ITEM_CODE" property="itemCode"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="LEGAL_FLAG" property="legalFlag"
+			jdbcType="VARCHAR" />
+		<result column="MEETINGS" property="meetings"
+			jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime"
+			jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime"
+			jdbcType="VARCHAR" />
+		<result column="REMARK" property="remark" jdbcType="VARCHAR" />
+		<result column="ERROR_REMARK" property="errorRemark"
+			jdbcType="VARCHAR" />
+		<result column="OPER_TYPE" property="operType"
+			jdbcType="VARCHAR" />
+		<result column="FILE_NAME" property="fileName"
+			jdbcType="VARCHAR" />
+		<result column="XML_CONTENT" property="xmlContent"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="preRegulation"
+		type="com.zefu.tiol.pojo.PreRegulation">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="REGULATION_ID" property="regulationId"
+			jdbcType="VARCHAR" />
+		<result column="REGULATION_NAME" property="regulationName"
+			jdbcType="VARCHAR" />
+		<result column="TYPE_NAME" property="typeName"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="APPROVAL_DATE" property="approvalDate"
+			jdbcType="VARCHAR" />
+		<result column="EFFECTIVE_DATE" property="effectiveDate"
+			jdbcType="VARCHAR" />
+		<result column="AUDIT_FLAG" property="auditFlag"
+			jdbcType="VARCHAR" />
+		<result column="RATE" property="rate" jdbcType="VARCHAR" />
+		<result column="VOTE_MODES" property="voteModes"
+			jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime"
+			jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime"
+			jdbcType="VARCHAR" />
+		<result column="REMARK" property="remark" jdbcType="VARCHAR" />
+		<result column="ERROR_REMARK" property="errorRemark"
+			jdbcType="VARCHAR" />
+		<result column="OPER_TYPE" property="operType"
+			jdbcType="VARCHAR" />
+		<result column="FILE_NAME" property="fileName"
+			jdbcType="VARCHAR" />
+		<result column="XML_CONTENT" property="xmlContent"
+			jdbcType="VARCHAR" />
+		<result column="FILE_ID" property="fileId" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="preMeeting"
+		type="com.zefu.tiol.pojo.PreMeeting">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="MEETING_ID" property="meetingId"
+			jdbcType="VARCHAR" />
+		<result column="MEETING_NAME" property="meetingName"
+			jdbcType="VARCHAR" />
+		<result column="TYPE_NAME" property="typeName"
+			jdbcType="VARCHAR" />
+		<result column="MEETING_TIME" property="meetingTime"
+			jdbcType="VARCHAR" />
+		<result column="MODERATOR" property="moderator"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="SUMMARY_FILE_ID" property="summaryFileId"
+			jdbcType="VARCHAR" />
+		<result column="NOTICE_FILE_ID" property="noticeFileId"
+			jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime"
+			jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime"
+			jdbcType="VARCHAR" />
+		<result column="OPER_TYPE" property="operType"
+			jdbcType="VARCHAR" />
+		<result column="REMARK" property="remark" jdbcType="VARCHAR" />
+		<result column="FILE_NAME" property="fileName"
+			jdbcType="VARCHAR" />
+		<result column="XML_CONTENT" property="xmlContent"
+			jdbcType="VARCHAR" />
+		<result column="ATTENDEES" property="attendees"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="preSubject"
+		type="com.zefu.tiol.pojo.PreSubject">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="SUBJECT_ID" property="subjectId"
+			jdbcType="VARCHAR" />
+		<result column="SOURCE_NAME" property="sourceName"
+			jdbcType="VARCHAR" />
+		<result column="SPECIAL_NAME" property="specialName"
+			jdbcType="VARCHAR" />
+		<result column="ITEM_CODE" property="itemCode"
+			jdbcType="VARCHAR" />
+		<result column="RELMEETING_NAME" property="relMeetingName"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_NAME" property="subjectName"
+			jdbcType="VARCHAR" />	
+		<result column="REL_SUBJECT_NAME" property="relSubjectName"
+			jdbcType="VARCHAR" />
+		<result column="PASS_FLAG" property="passFlag"
+			jdbcType="VARCHAR" />
+		<result column="APPROVAL_FLAG" property="approvalFlag"
+			jdbcType="VARCHAR" />
+		<result column="ADOPT_FLAG" property="adoptFlag"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_RESULT" property="subjectResult"
+			jdbcType="VARCHAR" />
+		<result column="REMARK" property="remark" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime"
+			jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime"
+			jdbcType="VARCHAR" />
+		<result column="ERROR_REMARK" property="errorRemark"
+			jdbcType="VARCHAR" />
+		<result column="OPER_TYPE" property="operType"
+			jdbcType="VARCHAR" />
+		<result column="FIL_ENAME" property="fileName"
+			jdbcType="VARCHAR" />
+		<result column="ATTENDANCES" property="attendances"
+			jdbcType="VARCHAR" />
+		<result column="DELIBERATIONS" property="deliberations"
+			jdbcType="VARCHAR" />
+		<result column="MEETING_ID" property="meetingId"
+			jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="VARCHAR" />
+		<result column="MEETING_NAME" property="meetingName" jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<insert id="savePreItem"
+		parameterType="com.zefu.tiol.pojo.PreItem">
+		INSERT INTO TIOL_PRE_ITEM
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="itemId != null">
+				ITEM_ID,
+			</if>
+			<if test="itemName != null">
+				ITEM_NAME,
+			</if>
+			<if test="itemCode != null">
+				ITEM_CODE,
+			</if>
+			<if test="companyId != null">
+				COMPANY_ID,
+			</if>
+			<if test="legalFlag != null">
+				LEGAL_FLAG,
+			</if>
+			<if test="meetings != null">
+				MEETINGS,
+			</if>
+			<if test="status != null">
+				STATUS,
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME,
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME,
+			</if>
+			<if test="remark != null">
+				REMARK,
+			</if>
+			<if test="errorRemark != null">
+				ERROR_REMARK,
+			</if>
+			<if test="operType != null">
+				OPER_TYPE,
+			</if>
+			<if test="fileName != null">
+				FILE_NAME,
+			</if>
+			<if test="xmlContent != null">
+				XML_CONTENT,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="itemId != null">
+				#{itemId,jdbcType=VARCHAR},
+			</if>
+			<if test="itemName != null">
+				#{itemName,jdbcType=VARCHAR},
+			</if>
+			<if test="itemCode != null">
+				#{itemCode,jdbcType=VARCHAR},
+			</if>
+			<if test="companyId != null">
+				#{companyId,jdbcType=VARCHAR},
+			</if>
+			<if test="legalFlag != null">
+				#{legalFlag,jdbcType=VARCHAR},
+			</if>
+			<if test="meetings != null">
+				#{meetings,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				#{status,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="remark != null">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="errorRemark != null">
+				#{errorRemark,jdbcType=VARCHAR},
+			</if>
+			<if test="operType != null">
+				#{operType,jdbcType=VARCHAR},
+			</if>
+			<if test="fileName != null">
+				#{fileName,jdbcType=VARCHAR},
+			</if>
+			<if test="xmlContent != null">
+				#{xmlContent,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<insert id="savePreRegulation"
+		parameterType="com.zefu.tiol.pojo.PreRegulation">
+		INSERT INTO TIOL_PRE_REGULATION
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="regulationId != null">
+				REGULATION_ID,
+			</if>
+			<if test="regulationName != null">
+				REGULATION_NAME,
+			</if>
+			<if test="typeName != null">
+				TYPE_NAME,
+			</if>
+			<if test="companyId != null">
+				COMPANY_ID,
+			</if>
+			<if test="approvalDate != null">
+				APPROVAL_DATE,
+			</if>
+			<if test="effectiveDate != null">
+				EFFECTIVE_DATE,
+			</if>
+			<if test="auditFlag != null">
+				AUDIT_FLAG,
+			</if>
+			<if test="rate != null">
+				RATE,
+			</if>
+			<if test="voteModes != null">
+				VOTEMODES,
+			</if>
+			<if test="status != null">
+				STATUS,
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME,
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME,
+			</if>
+			<if test="remark != null">
+				REMARK,
+			</if>
+			<if test="errorRemark != null">
+				ERROR_REMARK,
+			</if>
+			<if test="operType != null">
+				OPER_TYPE,
+			</if>
+			<if test="fileName != null">
+				FILE_NAME,
+			</if>
+			<if test="xmlContent != null">
+				XML_CONTENT,
+			</if>
+			<if test="fileId != null">
+				FILE_ID,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="regulationId != null">
+				#{regulationId,jdbcType=VARCHAR},
+			</if>
+			<if test="regulationName != null">
+				#{regulationName,jdbcType=VARCHAR},
+			</if>
+			<if test="typeName != null">
+				#{typeName,jdbcType=VARCHAR},
+			</if>
+			<if test="companyId != null">
+				#{companyId,jdbcType=VARCHAR},
+			</if>
+			<if test="approvalDate != null">
+				#{approvalDate,jdbcType=VARCHAR},
+			</if>
+			<if test="effectiveDate != null">
+				#{effectiveDate,jdbcType=VARCHAR},
+			</if>
+			<if test="auditFlag != null">
+				#{auditFlag,jdbcType=VARCHAR},
+			</if>
+			<if test="rate != null">
+				#{rate,jdbcType=VARCHAR},
+			</if>
+			<if test="voteModes != null">
+				#{voteModes,jdbcType=TIMESTAMP},
+			</if>
+			<if test="status != null">
+				#{status,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="errorRemark != null">
+				#{errorRemark,jdbcType=VARCHAR},
+			</if>
+			<if test="operType != null">
+				#{operType,jdbcType=VARCHAR},
+			</if>
+			<if test="fileName != null">
+				#{fileName,jdbcType=VARCHAR},
+			</if>
+			<if test="xmlContent != null">
+				#{xmlContent,jdbcType=VARCHAR},
+			</if>
+			<if test="fileId != null">
+				#{fileId,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<insert id="savePreMeeting"
+		parameterType="com.zefu.tiol.pojo.PreMeeting">
+		INSERT INTO TIOL_PRE_MEETING
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				ID,
+			</if>
+			<if test="meetingId != null">
+				MEETING_ID,
+			</if>
+			<if test="meetingName != null">
+				MEETING_NAME,
+			</if>
+			<if test="typeName != null">
+				TYPE_NAME,
+			</if>
+			<if test="meetingTime != null">
+				MEETING_TIME,
+			</if>
+			<if test="moderator != null">
+				MODERATOR,
+			</if>
+			<if test="companyId != null">
+				COMPANY_ID,
+			</if>
+			<if test="summaryFileId != null">
+				SUMMARY_FILE_ID,
+			</if>
+			<if test="noticeFileId != null">
+				NOTICE_FILE_ID,
+			</if>
+			<if test="status != null">
+				STATUS,
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME,
+			</if>
+			<if test="updateTime != null">
+				UPDATE_TIME,
+			</if>
+			<if test="operType != null">
+				OPER_TYPE,
+			</if>
+			<if test="remark != null">
+				REMARK,
+			</if>
+			<if test="fileName != null">
+				FILE_NAME,
+			</if>
+			<if test="xmlContent != null">
+				XML_CONTENT,
+			</if>
+			<if test="attendees != null">
+				ATTENDEES,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="meetingId != null">
+				#{meetingId,jdbcType=VARCHAR},
+			</if>
+			<if test="meetingName != null">
+				#{meetingName,jdbcType=VARCHAR},
+			</if>
+			<if test="typeName != null">
+				#{typeName,jdbcType=VARCHAR},
+			</if>
+			<if test="meetingTime != null">
+				#{meetingTime,jdbcType=VARCHAR},
+			</if>
+			<if test="moderator != null">
+				#{moderator,jdbcType=VARCHAR},
+			</if>
+			<if test="companyId != null">
+				#{companyId,jdbcType=VARCHAR},
+			</if>
+			<if test="summaryFileId != null">
+				#{summaryFileId,jdbcType=VARCHAR},
+			</if>
+			<if test="noticeFileId != null">
+				#{noticeFileId,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				#{status,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=VARCHAR},
+			</if>
+			<if test="operType != null">
+				#{operType,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="fileName != null">
+				#{fileName,jdbcType=VARCHAR},
+			</if>
+			<if test="xmlContent != null">
+				#{xmlContent,jdbcType=VARCHAR},
+			</if>
+			<if test="attendees != null">
+				#{attendees,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<insert id="batchInsertPreSubject"
+		parameterType="java.util.List" useGeneratedKeys="true">
+		insert into TIOL_PRE_SUBJECT(
+		ID, SUBJECT_ID, MEETING_ID, SUBJECT_NAME,
+		SOURCE_NAME, SPECIAL_NAME, ITEM_CODE, REL_MEETING_NAME,
+		REL_SUBJECT_NAME, PASS_FLAG, APPROVAL_FLAG, ADOPT_FLAG,
+		SUBJECT_RESULT, FILE_NAME, OPER_TYPE, ATTENDANCES, DELIBERATIONS,
+		STATUS, CREATE_TIME, UPDATE_TIME, ERROR_REMARK, REMARK,MEETING_NAME,COMPANY_ID) values
+		<foreach collection="list" item="subject" index="index"
+			separator=",">
+			(
+			#{subject.id,jdbcType=VARCHAR},
+			#{subject.subjectId,jdbcType=VARCHAR},
+			#{subject.meetingId,jdbcType=VARCHAR},
+			#{subject.subjectName,jdbcType=VARCHAR},
+			#{subject.sourceName,jdbcType=VARCHAR},
+			#{subject.specialName,jdbcType=VARCHAR},
+			#{subject.itemCode,jdbcType=VARCHAR},
+			#{subject.relMeetingName,jdbcType=VARCHAR},
+			#{subject.relSubjectName,jdbcType=VARCHAR},
+			#{subject.passFlag,jdbcType=VARCHAR},
+			#{subject.approvalFlag,jdbcType=VARCHAR},
+			#{subject.adoptFlag,jdbcType=VARCHAR},
+			#{subject.subjectResult,jdbcType=VARCHAR},
+			#{subject.fileName,jdbcType=VARCHAR},
+			#{subject.operType,jdbcType=VARCHAR},
+			#{subject.attendances,jdbcType=VARCHAR},
+			#{subject.deliberations,jdbcType=VARCHAR},
+			#{subject.status,jdbcType=VARCHAR},
+			#{subject.createTime,jdbcType=VARCHAR},
+			#{subject.updateTime,jdbcType=VARCHAR},
+			#{subject.errorRemark,jdbcType=VARCHAR},
+			#{subject.remark,jdbcType=VARCHAR},
+			#{subject.meetingName,jdbcType=VARCHAR},
+			#{subject.companyId,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+
+	<select id="getUndealItem" resultMap="preItem">
+		SELECT * FROM TIOL_PRE_ITEM
+		T
+		WHERE STATUS = '0'
+		order by file_name
+	</select>
+	<select id="getUndealRegulation" resultMap="preRegulation">
+		SELECT * FROM
+		TIOL_PRE_REGULATION T
+		WHERE STATUS = '0'
+		order by file_name
+	</select>
+	<select id="getUndealMeeting" resultMap="preMeeting">
+		SELECT * FROM
+		TIOL_PRE_MEETING T
+		WHERE STATUS = '0'
+		order by file_name
+	</select>
+	<select id="getUndealSubject" resultMap="preSubject">
+		SELECT * FROM
+		TIOL_PRE_SUBJECT T
+		WHERE STATUS = '0'
+		order by create_time
+	</select>
+
+	<update id="updatePreItem"
+		parameterType="com.zefu.tiol.pojo.PreItem">
+		UPDATE TIOL_PRE_ITEM T
+		SET T.STATUS =
+		#{status,jdbcType=VARCHAR},
+		T.UPDATE_TIME =
+		#{updateTime,jdbcType=VARCHAR},
+		T.ERROR_REMARK = #{errorRemark,jdbcType=VARCHAR}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updatePreRegulation"
+		parameterType="com.zefu.tiol.pojo.PreRegulation">
+		UPDATE TIOL_PRE_REGULATION T
+		SET T.STATUS =
+		#{status,jdbcType=VARCHAR},
+		T.UPDATE_TIME =
+		#{updateTime,jdbcType=VARCHAR},
+		T.ERROR_REMARK = #{errorRemark,jdbcType=VARCHAR}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updatePreMeeting"
+		parameterType="com.zefu.tiol.pojo.PreMeeting">
+		UPDATE TIOL_PRE_MEETING T
+		SET T.STATUS =
+		#{status,jdbcType=VARCHAR},
+		T.UPDATE_TIME =
+		#{updateTime,jdbcType=VARCHAR},
+		T.ERROR_REMARK = #{errorRemark,jdbcType=VARCHAR}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updatePreSubject" parameterType="com.zefu.tiol.pojo.PreSubject">
+		UPDATE TIOL_PRE_SUBJECT T
+		SET T.STATUS =
+		#{status,jdbcType=VARCHAR},
+		T.UPDATE_TIME =
+		#{updateTime,jdbcType=VARCHAR},
+		T.ERROR_REMARK = #{errorRemark,jdbcType=VARCHAR}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="checkItemIsExist" parameterType="String" resultType="Integer">
+		select count(ITEM_ID) from BIZ_TIOL_ITEM
+		where CATALOG_ID = #{catalogId} and ITEM_CODE = #{itemCode} and COMPANY_ID = #{companyId}
+	</select>
+	
+	<select id="checkRegulationExist" parameterType="String" resultType="Integer">
+		select count(REGULATION_ID) from BIZ_TIOL_REGULATION
+		where 
+			REGULATION_NAME = #{regulationName} and TYPE_ID = #{typeId} 
+		and COMPANY_ID = #{companyId} and SID = #{regulationId}
+	</select>
+	
+	
+</mapper>
+	

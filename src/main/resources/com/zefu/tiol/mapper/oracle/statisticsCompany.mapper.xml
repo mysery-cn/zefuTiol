@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.StatisticsCompanyMapper">
+
+	<resultMap id="statistics"
+		type="com.zefu.tiol.pojo.StatisticsCompany">
+		<result column="STATISTICS_ID" property="statisticsId"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="INDUSTRY_ID" property="industryId"
+			jdbcType="VARCHAR" />
+		<result column="SUBJECT_QUANTITY" property="subjectQuantity"
+			jdbcType="INTEGER" />
+		<result column="MEETING_QUANTITY" property="meetingQuantity"
+			jdbcType="INTEGER" />
+		<result column="ITEM_QUANTITY" property="itemQuantity"
+			jdbcType="INTEGER" />
+		<result column="REGULATION_QUANTITY"
+			property="regulationQuantity" jdbcType="INTEGER" />
+		<result column="NONSTANDARD_QUANTITY"
+			property="nonstandardQuantity" jdbcType="INTEGER" />
+		<result column="STATISTICS_TIME" property="statisticsTime"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_NAME" property="companyName"
+			jdbcType="VARCHAR" />
+		<result column="RN" property="rn"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryCompanyList" parameterType="String"
+		resultMap="statistics">
+		SELECT * FROM TIOL_STATISTICS_COMPANY
+		<if test="industryId != null and industryId != ''">
+			WHERE INDUSTRY_ID = #{industryId, jdbcType=VARCHAR}
+		</if>
+	</select>
+
+	<select id="queryListByPage" parameterType="java.util.Map" resultMap="statistics">
+	select * from (
+	Select t.*,ROWNUM RN from (SELECT t.*, tc.DISPLAY_ORDER
+	FROM TIOL_STATISTICS_COMPANY t
+	left join T_UMS_MGR_COMPANY tc on t.company_id = tc.company_id
+	<where>
+		<if test="industryId != null and industryId != ''">
+			INDUSTRY_ID = #{industryId, jdbcType=VARCHAR}
+		</if>
+		<if test="companyName != null and companyName != ''">
+			and t.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		</if>
+	</where>
+	order by tc.DISPLAY_ORDER asc)t)
+	where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	
+	</select>
+	
+	<select id="getTotalCount" parameterType="java.util.Map" resultType="Integer">
+		Select count(*) total FROM TIOL_STATISTICS_COMPANY t
+		<where>
+			<if test="industryId != null and industryId != ''">
+				t.INDUSTRY_ID = #{industryId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and t.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryCompanyDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select COMPANY_ID,COMPANY_NAME,COMPANY_SHORT_NAME,INST_ID,INST_NAME from t_ums_mgr_company
+		where COMPANY_ID = #{companyID}
+	</select>
+	
+	
+	
+
+</mapper>
+	

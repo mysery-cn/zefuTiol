@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.SourceMapper">
+	
+	<select id="queryList" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_source where status = 1
+		<if test="sourceName != null and sourceName != ''">
+			and source_name like '%'|| #{sourceName, jdbcType=VARCHAR} ||'%'
+		</if>
+	</select>
+	
+	<insert id="saveSource" parameterType="java.util.Map">
+		insert into biz_tiol_source
+		(FID,SOURCE_ID,SOURCE_NAME,STATUS,CREATE_TIME,CREATE_USER) 
+		values 
+		(#{FID},#{FID},#{sourceName},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR})
+	</insert>
+	
+	<update id="updateSource" parameterType="java.util.Map">
+		update biz_tiol_source set SOURCE_NAME = #{sourceName},UPDATE_TIME = sysdate,UPDATE_USER = #{CURRENT_USER.userId,jdbcType=VARCHAR}
+		where SOURCE_ID = #{sourceId}
+	</update>
+	
+	<delete id="deleteSource" parameterType="java.util.Map">
+		delete from biz_tiol_source where SOURCE_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="querySourceDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select SOURCE_ID as "sourceId",SOURCE_NAME as "sourceName" 
+		from biz_tiol_source 
+		where SOURCE_ID = #{sourceId}
+	</select>
+	
+	
+</mapper>
+	

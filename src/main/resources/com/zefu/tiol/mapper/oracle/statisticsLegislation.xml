@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.StatisticsLegislationMapper">
+
+	<resultMap id="baseMap"
+		type="com.zefu.tiol.pojo.StatisticsLegislation">
+		<result column="STATISTICS_ID" property="statisticsId"
+			jdbcType="VARCHAR" />
+		<result column="COMPANY_ID" property="companyId"
+			jdbcType="VARCHAR" />
+		<result column="YEAR" property="year"
+			jdbcType="VARCHAR" />
+		<result column="QUANTITY"
+			property="quantity" jdbcType="INTEGER" />
+		<result column="TOTAL"
+			property="total" jdbcType="INTEGER" />
+		<result column="STATISTICS_TIME" property="statisticsTime"
+			jdbcType="VARCHAR" />
+		<result column="STATISTICS_TYPE" property="statisticsType"
+			jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<resultMap id="baseVoMap"
+		type="com.zefu.tiol.pojo.StatisticsLegislationVo" extends="baseMap">
+		<result column="ROWNUM" property="rowNum"
+			jdbcType="INTEGER" />
+		<result column="COMPANY_NAME" property="companyName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+    <select id="listStatisticsYear" resultType="java.util.Map">
+         select
+                        distinct year as "value",
+                        year||'年度' as "text"
+          from tiol_statistics_legislation tsl
+    </select>
+	<select id="listLegislationStatistics" parameterType="java.util.Map" resultType="java.util.Map">
+	select t.* from (
+	    select a.*,ROWNUM rn from(
+               select
+                        p.company_id as "companyId",
+                        p.company_short_name as "companyShortName",
+			            p.company_name as "companyName",
+                        p.display_order,
+                        sum(decode(statistics_type,'1',total,0)) as "cc",
+                        sum(decode(statistics_type,'2',total,0)) as "dc",
+                        sum(decode(statistics_type,'3',total,0)) as "cf",
+                        sum(decode(statistics_type,'4',total,0)) as "ro",
+                        sum(decode(statistics_type,'5',total,0)) as "er",
+                        sum(decode(statistics_type,'6',total,0)) as "op"
+                from t_ums_mgr_company p
+                 left join tiol_statistics_legislation tsl 
+                 on (tsl.company_id = p.company_id and tsl.statistics_type is not null
+                 <if test="year != null and year != ''">
+			       		and	tsl.year = #{year, jdbcType=VARCHAR}
+			     </if>
+			       )
+                 <where>
+                     <if test="companyName != null and companyName != ''">
+			       		 and (
+		    				p.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    			or
+		    				p.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    			)
+			       	</if>
+			       	<if test="companyList != null and companyList.size() > 0">
+				      	and p.company_id in (
+				      	<foreach collection="companyList" separator="," item="item"
+				      		index="index">
+				      		#{item.COMPANY_ID,jdbcType=VARCHAR}
+			      		</foreach>
+			      		)
+			      	</if>
+                     and p.inst_level !='1'
+                 </where> 
+                 group by p.company_id,p.company_short_name,p.company_name,p.display_order
+                 order by p.display_order
+           ) a
+	    ) t
+		where  rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}	
+	</select>
+	
+	<select id="countLegislationStatistics" parameterType="java.util.Map" resultType="java.lang.Integer">
+	select count(p.company_id)
+	   from t_ums_mgr_company p
+        <where>
+           <if test="companyName != null and companyName != ''">
+			   and (
+		    		p.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    	or
+		    		p.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    	)
+			 </if>
+			 <if test="companyList != null and companyList.size() > 0">
+				and p.company_id in (
+				<foreach collection="companyList" separator="," item="item"
+					index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+				</foreach>
+				)
+			</if>
+            and p.inst_level !='1'
+        </where> 
+	</select>
+	
+	<select id="getLegislationChartData" parameterType="java.util.Map" resultMap="baseVoMap">
+	select ti.statistics_type,sum(ti.quantity) quantity,sum(ti.total) total
+	    from tiol_statistics_legislation ti
+	    where ti.statistics_type is not null
+    group by ti.statistics_type order by ti.statistics_type
+	</select>
+	
+	<select id="listSubjectByOptionType" parameterType="java.util.Map" resultType="java.util.Map">
+	select t.* from (
+	    select ROWNUM rn,a.*
+        from ( select m.company_id as "companyId", c.company_short_name as "companyName", m.meeting_id as "meetingId", 
+        m.meeting_name as "meetingName", s.subject_id as "subjectId", s.subject_name as "subjectName", 
+        t.type_name as "meetingType", sum(bti.legal_flag) as legalFlag,
+        to_char(m.meeting_time,'yyyy"年"MM"月"dd"日"') as "meetingTime", s.approval_flag as "approvalFlag",        
+        (select count(*)  from TIOL_ATTENDANCE  where subject_id=s.subject_id and position like '%法律顾问%') as counselNum,
+        (select count(*)  from tiol_attachment  where business_id=s.subject_id and attachment_type ='法律意见书' ) as opinionNum
+		from biz_tiol_subject s
+		inner join biz_tiol_meeting m on s.meeting_id = m.meeting_id
+		inner join t_ums_mgr_company c on m.company_id = c.company_id
+		inner join biz_tiol_meeting_type t on m.type_id = t.type_id
+		inner join tiol_subject_item tsi on tsi.subject_id=s.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		<where>
+		<if test="companyName != null and companyName != ''">
+			 and (
+		    	c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    or
+		    	c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    )
+	    </if>
+		<if test="meetingType != null and meetingType != ''">
+			and m.type_id =#{meetingType, jdbcType=VARCHAR}
+		</if>
+		<if test="typeName != null and typeName != ''">
+			and t.type_name =#{typeName, jdbcType=VARCHAR}
+		</if>
+		<if test="typeNames != null and typeNames != ''">
+			and t.type_name in
+			<foreach collection="typeNames" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="startTime != null and startTime !=''">
+			and trunc(m.meeting_time) &gt;=
+				to_date(#{startTime},'yyyy-mm-dd')
+		</if>
+		<if test="endTime != null and endTime !=''">
+			and trunc(m.meeting_time) &lt;=
+				to_date(#{endTime},'yyyy-mm-dd')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id =#{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="subjectName != null and subjectName != ''">
+			and s.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and m.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="approvalFlag != null and approvalFlag != ''">
+			and s.approval_flag = #{approvalFlag, jdbcType=VARCHAR}
+		</if>
+		<if test="catalogName != null and catalogName != ''">
+			and bti.catalog_id in 
+			(select catalog_id from biz_tiol_catalog 
+			start with catalog_id =
+			(select  catalog_id from biz_tiol_catalog 
+			where  catalog_name like #{catalogName,jdbcType=VARCHAR}||'%' and catalog_level ='1')
+  				connect by catalog_pid=prior catalog_id )
+		</if>
+		<if test="catalogList != null and catalogList.size() > 0">
+		    and bti.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item" index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator="," item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and c.company_id IN (
+			<foreach collection="companyList" separator="," item="item" index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="itemName != null and itemName != ''">
+			and bti.item_name =#{itemName, jdbcType=VARCHAR}
+		</if>
+		and c.inst_level !='1' and s.status='1'  and m.status='1'  and bti.status='1' 
+		</where>
+		group by m.company_id, c.company_short_name, m.meeting_id, m.meeting_name, s.subject_id ,
+		 s.subject_name, t.type_name, m.meeting_time, s.approval_flag
+		order by m.meeting_time desc
+		) a
+		<where>
+		 <if test="counselFlag != null and counselFlag != ''">
+			 <if test='counselFlag == "0" '>
+			     and counselNum = 0
+		     </if>
+		     <if test='counselFlag == "1" '>
+			     and counselNum > 0
+		     </if>
+		 </if>
+		 <if test="opinionFlag != null and opinionFlag != ''">
+			 <if test='opinionFlag == "0" '>
+			     and opinionNum = 0
+		     </if>
+		     <if test='opinionFlag == "1" '>
+			     and opinionNum > 0
+		     </if>
+		 </if>
+		 <if test="auditFlag != null and auditFlag != ''">
+			 <if test='auditFlag == "0" '>
+			     and legalFlag ='0' or legalFlag is null or (legalFlag >'0' and opinionNum = 0 and counselNum = 0)
+		     </if>
+		     <if test='auditFlag == "1" '>
+			     and legalFlag >'0' and (opinionNum > 0 or counselNum > 0)
+		     </if>
+		 </if>
+		 <if test="legalFlag != null and legalFlag != ''">
+		    <if test='legalFlag == "0"'>
+		        and legalFlag = '0'
+		    </if>
+		    <if test='legalFlag == "1"'>
+		        and legalFlag > '0'
+		    </if>
+		</if>
+		</where>
+	 ) t
+		where  rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}	
+	</select>
+	
+	<select id="countSubjectByOptionType" parameterType="java.util.Map" resultType="java.lang.Integer">
+	    select count(*)
+        from (select sum(bti.legal_flag) as legalFlag ,
+        (select count(*)  from TIOL_ATTENDANCE  where subject_id=s.subject_id and position like '%法律顾问%') as counselNum,
+        (select count(*)  from tiol_attachment  where business_id=s.subject_id and attachment_type ='法律意见书' ) as opinionNum
+		from biz_tiol_subject s
+		inner join biz_tiol_meeting m on s.meeting_id = m.meeting_id
+		inner join t_ums_mgr_company c on m.company_id = c.company_id
+		inner join biz_tiol_meeting_type t on m.type_id = t.type_id
+		inner join tiol_subject_item tsi on tsi.subject_id=s.subject_id
+		inner join biz_tiol_item bti on bti.item_id=tsi.item_id
+		<where>
+		<if test="companyName != null and companyName != ''">
+			 and (
+		    	c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    or
+		    	c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    )
+	    </if>
+		<if test="meetingType != null and meetingType != ''">
+			and m.type_id =#{meetingType, jdbcType=VARCHAR}
+		</if>
+		<if test="typeName != null and typeName != ''">
+			and t.type_name =#{typeName, jdbcType=VARCHAR}
+		</if>
+		<if test="typeNames != null and typeNames != ''">
+			and t.type_name in
+			<foreach collection="typeNames" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="startTime != null and startTime !=''">
+			and trunc(m.meeting_time) &gt;=
+				to_date(#{startTime},'yyyy-mm-dd')
+		</if>
+		<if test="endTime != null and endTime !=''">
+			and trunc(m.meeting_time) &lt;=
+				to_date(#{endTime},'yyyy-mm-dd')
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id =#{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="subjectName != null and subjectName != ''">
+			and s.subject_name like '%'|| #{subjectName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and m.meeting_name like '%'|| #{meetingName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="approvalFlag != null and approvalFlag != ''">
+			and s.approval_flag = #{approvalFlag, jdbcType=VARCHAR}
+		</if>
+		<if test="catalogName != null and catalogName != ''">
+			and bti.catalog_id in 
+			(select catalog_id from biz_tiol_catalog 
+			start with catalog_id =
+			(select  catalog_id from biz_tiol_catalog 
+			where  catalog_name like #{catalogName,jdbcType=VARCHAR}||'%' and catalog_level ='1')
+  				connect by catalog_pid=prior catalog_id )
+		</if>
+		<if test="catalogList != null and catalogList.size() > 0">
+		    and bti.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item" index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator="," item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and c.company_id IN (
+			<foreach collection="companyList" separator="," item="item" index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="itemName != null and itemName != ''">
+			and bti.item_name =#{itemName, jdbcType=VARCHAR}
+		</if>
+		and c.inst_level !='1' and s.status='1'  and m.status='1'  and bti.status='1' 
+		</where>
+		group by m.company_id, c.company_short_name, m.meeting_id, m.meeting_name, s.subject_id ,
+		 s.subject_name, t.type_name, m.meeting_time, s.approval_flag
+		order by m.meeting_time desc
+		) a
+		<where>
+		 <if test="counselFlag != null and counselFlag != ''">
+			 <if test='counselFlag == "0" '>
+			     and counselNum = 0
+		     </if>
+		     <if test='counselFlag == "1" '>
+			     and counselNum > 0
+		     </if>
+		 </if>
+		 <if test="opinionFlag != null and opinionFlag != ''">
+			 <if test='opinionFlag == "0" '>
+			     and opinionNum = 0
+		     </if>
+		     <if test='opinionFlag == "1" '>
+			     and opinionNum > 0
+		     </if>
+		 </if>
+		 <if test="auditFlag != null and auditFlag != ''">
+			 <if test='auditFlag == "0" '>
+			     and legalFlag ='0' or legalFlag is null or (legalFlag >'0' and opinionNum = 0 and counselNum = 0)
+		     </if>
+		     <if test='auditFlag == "1" '>
+			     and legalFlag >'0' and (opinionNum > 0 or counselNum > 0)
+		     </if>
+		 </if>
+		 <if test="legalFlag != null and legalFlag != ''">
+		    <if test='legalFlag == "0"'>
+		        and legalFlag = '0'
+		    </if>
+		    <if test='legalFlag == "1"'>
+		        and legalFlag > '0'
+		    </if>
+		</if>
+		</where>
+	</select>
+	
+	<select id="listRegulationByOptionType" parameterType="java.util.Map" resultType="java.util.Map">
+	select t.* from (
+	    select ROWNUM rn,a.*
+        from (select s.regulation_id as "regulationId",s.regulation_name as "regulationName",to_char(s.approval_date,'yyyy"年"MM"月"dd"日"') as "approvalDate",
+        to_char(s.effective_date,'yyyy"年"MM"月"dd"日"') as "effectiveDate",s.audit_flag as "auditFlag",s.audit_file_id as "auditFileId",s.file_id as "fileId",
+        s.company_id as "companyId",c.company_short_name as "companyName"
+		from biz_tiol_regulation s
+		inner join t_ums_mgr_company c on s.company_id = c.company_id
+		inner join biz_tiol_regulation_type t on s.type_id = t.type_id
+		<where>
+		<if test="companyName != null and companyName != ''">
+			 and (
+		    	c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    or
+		    	c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    )
+	    </if>
+		<if test="companyId != null and companyId != ''">
+			and s.company_id =#{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="regulationName != null and regulationName != ''">
+			and s.regulation_name like '%'|| #{regulationName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="auditFlag != null and auditFlag != ''">
+			and s.audit_flag = #{auditFlag, jdbcType=VARCHAR}
+		</if>
+		and c.inst_level !='1' and s.status='1'
+		</where>
+		order by c.display_order
+		) a
+	 ) t
+		where  rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}	
+	</select>
+	
+	<select id="countRegulationByOptionType" parameterType="java.util.Map" resultType="java.lang.Integer">
+	    select count(*)
+		from biz_tiol_regulation s
+		inner join t_ums_mgr_company c on s.company_id = c.company_id
+		inner join biz_tiol_regulation_type t on s.type_id = t.type_id
+		<where>
+		<if test="companyName != null and companyName != ''">
+			 and (
+		    	c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    or
+		    	c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    )
+	    </if>
+		<if test="companyId != null and companyId != ''">
+			and s.company_id =#{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="regulationName != null and regulationName != ''">
+			and s.regulation_name like '%'|| #{regulationName, jdbcType=VARCHAR}||'%'
+		</if>
+		<if test="auditFlag != null and auditFlag != ''">
+			and s.audit_flag = #{auditFlag, jdbcType=VARCHAR}
+		</if>
+		and c.inst_level !='1' and s.status='1'
+		</where>
+		
+	</select>
+
+</mapper>
+	

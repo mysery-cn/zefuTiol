@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.CompanyMapper">
+
+	<update id="updateCompanyMsg" parameterType="java.util.Map">
+		update T_UMS_MGR_COMPANY 
+		<set>
+		   <if test="companyName != null and companyName != ''">
+		     company_name=#{companyName,jdbcType=VARCHAR},
+		   </if>
+		   <if test="companyShortName != null and companyShortName != ''">
+		     company_short_name=#{companyShortName,jdbcType=VARCHAR},
+		   </if>
+		   <if test="displayOrder != null and displayOrder != ''">
+		     display_order=#{displayOrder,jdbcType=VARCHAR},
+		   </if>
+		</set>
+		<where>
+		    <if test="companyId != null and companyId != ''">
+		     and company_id=#{companyId,jdbcType=VARCHAR}
+		   </if>
+		</where>
+	</update>
+	
+	<select id="listAllMsg" resultType="java.util.Map">
+	    select * from T_UMS_MGR_COMPANY
+	</select>
+	
+	<select id="getCompanyDataById" parameterType="java.util.Map" resultType="java.util.Map">
+			SELECT
+					t.COMPANY_ID , 
+					t.COMPANY_NAME , 
+					t.COMPANY_SHORT_NAME,
+					t.COMPANY_SHORT_NAME_TWO,
+			        t.COMPANY_SHORT_NAME_THREE,
+					t.DISPLAY_ORDER,
+					t.INST_ID,
+					t.INST_NAME ,
+					t.INST_LEVEL,
+					t.WHOLE_INST_ID,
+					t.WHOLE_INST_NAME,
+					t.INST_COMPANY_TYPE,
+			        t.INST_COMPANY_CATEGORY,
+			        t.NET_DISPATCH,
+			        t.COMPANY_TYPE,
+			        t.EXTEND_COMPANY_ID
+				FROM 
+					t_ums_mgr_company t
+				<where>
+				    <if test="companyId !=null and companyId != ''">
+				        and t.COMPANY_ID= #{companyId,jdbcType=VARCHAR}
+				    </if>
+				</where>
+	</select>
+	
+	<insert id="insertCompanyData" parameterType="java.util.Map">
+	    insert t_ums_mgr_company (company_id,company_name,company_short_name,inst_id,inst_name,inst_company_type,display_order)
+	    values(#{companyId,jdbcType=VARCHAR},#{companyName,jdbcType=VARCHAR},#{companyShortName,jdbcType=VARCHAR},#{instId,jdbcType=VARCHAR},
+	        #{instName,jdbcType=VARCHAR},#{instCompanyType,jdbcType=VARCHAR},#{displayOrder,jdbcType=VARCHAR})
+	</insert>
+</mapper>
+	

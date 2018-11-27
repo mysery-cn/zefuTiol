@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.DataVindicateMapper">
+
+    <select id="queryItemListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select m.* from (
+        select t.ITEM_ID,t.ITEM_NAME,t.ERROR_REMARK,t.CREATE_TIME,
+        tc.COMPANY_SHORT_NAME,rownum rn,t.COMPANY_ID,t.ITEM_CODE,t.ID
+        from TIOL_PRE_ITEM t
+        left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+        ) m
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+
+    <select id="queryItemListByPageCount" parameterType="java.util.Map" resultType="Integer">
+        select count(t.item_id)
+        from TIOL_PRE_ITEM t
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+    </select>
+
+
+    <select id="queryRegulationListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select m.* from (
+        select t.REGULATION_ID,t.REGULATION_NAME,t.ERROR_REMARK,
+        t.CREATE_TIME,tc.COMPANY_SHORT_NAME,rownum rn,t.COMPANY_ID,t.TYPE_NAME,t.ID
+        from TIOL_PRE_REGULATION t
+        left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+        ) m
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+
+    <select id="queryRegulationListByPageCount" parameterType="java.util.Map" resultType="Integer">
+        select count(t.REGULATION_ID)
+        from TIOL_PRE_REGULATION t
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+    </select>
+
+    <select id="queryMeetingListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select m.* from (
+        select t.MEETING_ID,t.MEETING_NAME,t.MEETING_TIME,t.ERROR_REMARK,
+                t.CREATE_TIME,tc.COMPANY_SHORT_NAME,rownum rn,t.COMPANY_ID,t.TYPE_NAME,t.ID
+        from TIOL_PRE_MEETING t
+        left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+        ) m
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+
+    <select id="queryMeetingListByPageCount" parameterType="java.util.Map" resultType="Integer">
+        select count(t.MEETING_ID)
+        from TIOL_PRE_MEETING t
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+    </select>
+
+    <select id="querySubjectListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select m.* from (
+        select t.SUBJECT_ID,t.SUBJECT_NAME,t.MEETING_NAME,t.ERROR_REMARK,
+                t.CREATE_TIME,tc.COMPANY_SHORT_NAME,rownum rn,t.COMPANY_ID,t.ID
+        from TIOL_PRE_SUBJECT t
+        left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+        ) m
+        where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+
+    <select id="querySubjectListByPageCount" parameterType="java.util.Map" resultType="Integer">
+        select count(t.SUBJECT_ID)
+        from TIOL_PRE_SUBJECT t
+        where t.status = #{status}
+        <if test="companyName != null and companyName != ''">
+            and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+        </if>
+    </select>
+
+    <update id="updateStatus" parameterType="java.util.Map">
+        update
+        <if test="type == 'subject'">
+            TIOL_PRE_SUBJECT
+            set  status = 0
+            where ID in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and status = 2
+        </if>
+        <if test="type == 'item'">
+            TIOL_PRE_ITEM
+            set  status = 0
+            where ID in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and status = 2
+        </if>
+        <if test="type == 'regulation'">
+            TIOL_PRE_REGULATION
+            set  status = 0
+            where ID in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and status = 2
+        </if>
+        <if test="type == 'meeting'">
+            TIOL_PRE_MEETING
+            set  status = 0
+            where ID in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and status = 2
+        </if>
+    </update>
+
+    <select id="queryXmlDetail" parameterType="java.util.Map" resultType="String">
+        select  XML_CONTENT from
+        <if test="type == 'item'">
+            TIOL_PRE_ITEM
+            where ID = #{id} AND STATUS = #{status}
+        </if>
+        <if test="type == 'regulation'">
+            TIOL_PRE_REGULATION
+            where ID = #{id} AND STATUS = #{status}
+        </if>
+        <if test="type == 'meeting'">
+            TIOL_PRE_MEETING
+            where ID = #{id} AND STATUS = #{status}
+        </if>
+    </select>
+
+</mapper>
+	

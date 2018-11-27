@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.BizDBMapper">
+
+	<select id="queryList"
+		resultType="java.util.Map" statementType="STATEMENT">
+		select * from ${tableName} where 1=1
+		<foreach item="value" collection="paramMap.values" index="index">
+			and ${value} 
+		</foreach>
+
+	</select>
+
+	<insert id="save" statementType="STATEMENT" parameterType="java.util.Map">
+		insert into ${tableName} (
+		<foreach item="key" collection="valuesMap.keys" 
+			separator="," index="index">
+			${key}
+		</foreach>
+		) values (
+		<foreach item="value" collection="valuesMap.values" 
+			separator="," index="index">
+			'${value}'
+		</foreach>
+		)
+	</insert>
+
+</mapper>
+	

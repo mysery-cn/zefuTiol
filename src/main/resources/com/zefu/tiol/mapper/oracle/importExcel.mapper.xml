@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.ImportExcelMapper">
+	
+	<select id="queryMeetingType" parameterType="String" resultType="String">
+		select nvl(TYPE_ID,'') from BIZ_TIOL_MEETING_TYPE 
+		where TYPE_NAME = #{alias}
+	</select>
+	
+	<select id="queryMeetingTypeList" parameterType="String" resultType="java.util.Map">
+		select TYPE_ID as "typeId", ALIAS as "alias"
+		from  BIZ_TIOL_MEETING_TYPE
+		where ALIAS like '%' || #{alias, jdbcType=VARCHAR} || '%'
+	</select>
+	
+	<insert id="saveAttendess" parameterType="com.zefu.tiol.pojo.Attendee">
+		insert into TIOL_ATTENDEE
+		(ATTENDEE_ID,MEETING_ID,ATTENDEE_NAME,ATTEND_FLAG,REASON) 
+		values
+		(#{attendeeId, jdbcType=VARCHAR},#{meetingId, jdbcType=VARCHAR},#{attendeeName, jdbcType=VARCHAR},
+		 #{attendFlag, jdbcType=VARCHAR},#{reason, jdbcType=VARCHAR})
+	</insert>
+	
+	<select id="querySourceId" parameterType="String" resultType="String">
+		select SOURCE_ID from BIZ_TIOL_SOURCE where SOURCE_NAME = #{sourceName} and STATUS = 1
+	</select>
+	
+	<select id="querySpecialId" parameterType="String" resultType="String">
+		select SPECIAL_ID from BIZ_TIOL_SPECIAL where SPECIAL_NAME = #{specialName} and STATUS = 1
+	</select>
+	
+	<select id="queryItemId" parameterType="String" resultType="String">
+		select ITEM_ID from BIZ_TIOL_ITEM where ITEM_CODE = #{itemCode} and STATUS = 1
+	</select>
+	
+	<select id="queryMeetingId" parameterType="String" resultType="String">
+		select MEETING_ID from BIZ_TIOL_MEETING 
+		where MEETING_NAME = #{relMeetingName} and STATUS = 1 and COMPANY_ID = #{companyId}
+	</select>
+	
+	<select id="queryPassFlagValue" resultType="java.util.Map">
+		select CONFIG_KEY,CONFIG_VALUE from 
+		T_BUSINESS_CONFIG where CONFIG_KEY in ('cfg_veto_name','cfg_defer_name','cfg_pass_name')
+	</select>
+	
+	<insert id="saveSubjectItem" parameterType="com.zefu.tiol.pojo.SubjectItem">
+		insert into TIOL_SUBJECT_ITEM
+		(RELEVANCE_ID,SUBJECT_ID,
+        <if test="itemId != null and itemId != ''">
+            ITEM_ID,
+        </if>
+		UPDATE_TIME)
+		values
+		(#{relevanceId},#{subjectId},
+        <if test="itemId != null and itemId != ''">
+            #{itemId},
+        </if>
+        sysdate)
+	</insert>
+	
+	<select id="querySubjectId" parameterType="String" resultType="String">
+		select SUBJECT_ID from BIZ_TIOL_SUBJECT where MEETING_ID = #{relMeetingId} and SUBJECT_NAME = #{relSubjectName} and status = 1
+	</select>
+	
+	<insert id="saveSubjectRelevance" parameterType="com.zefu.tiol.pojo.SubjectRelevance">
+		insert into TIOL_SUBJECT_RELEVANCE
+		(RELEVANCE_ID,SUBJECT_ID,
+        <if test="relMeetingId != null and relMeetingId != ''">
+            REL_MEETING_ID,
+        </if>
+        <if test="relSubjectId != null and relSubjectId != ''">
+            REL_SUBJECT_ID,
+        </if>
+        <if test="relMeetingName != null and relMeetingName != ''">
+            REL_MEETING_NAME,
+        </if>
+        <if test="relSubjectName != null and relSubjectName != ''">
+            REL_SUBJECT_NAME,
+        </if>
+		UPDATE_TIME)
+		values
+		(#{relevanceId},#{subjectId},
+        <if test="relMeetingId != null and relMeetingId != ''">
+            #{relMeetingId},
+        </if>
+        <if test="relSubjectId != null and relSubjectId != ''">
+            #{relSubjectId},
+        </if>
+        <if test="relMeetingName != null and relMeetingName != ''">
+            #{relMeetingName},
+        </if>
+        <if test="relSubjectName != null and relSubjectName != ''">
+            #{relSubjectName},
+        </if>
+        sysdate)
+	</insert>
+	
+	<insert id="saveAttendance" parameterType="com.zefu.tiol.pojo.Attendance">
+		insert into TIOL_ATTENDANCE
+		(
+			ATTENDANCE_ID,MEETING_ID,SUBJECT_ID
+            <if test="attendanceName != null and attendanceName != ''">
+                ,ATTENDANCE_NAME
+            </if>
+            <if test="position != null and position != ''">
+                ,POSITION
+            </if>
+            <if test="counselType != null and counselType != ''">
+                ,COUNSEL_TYPE
+            </if>
+		)
+		values
+		(
+			#{attendanceId},#{meetingId},#{subjectId}
+            <if test="attendanceName != null and attendanceName != ''">
+                ,#{attendanceName}
+            </if>
+            <if test="position != null and position != ''">
+                ,#{position}
+            </if>
+            <if test="counselType != null and counselType != ''">
+                ,#{counselType}
+            </if>
+		)
+	</insert>
+	
+	<insert id="saveDeliberation" parameterType="com.zefu.tiol.pojo.Deliberation">
+		insert into TIOL_DELIBERATION
+		(
+			DELIBERATION_ID,MEETING_ID,SUBJECT_ID,DELIBERATION_RESULT,DELIBERATION_PERSONNEL
+		)
+		values
+		(
+			#{deliberationId},#{meetingId},#{subjectId},#{deliberationResult},#{deliberationPersonnel}
+		)
+	</insert>
+	
+	<select id="queryPreItemList" resultType="java.util.Map">
+        select ti.ITEM_ID as "itemId",
+                ti.ITEM_NAME as "itemName",
+                ti.ITEM_CODE as "itemCode",
+                tc.COMPANY_SHORT_NAME as "companyName",
+                ti.CREATE_TIME as "createTime",
+                nvl(ti.ERROR_REMARK,'匹配不到错误信息') as "errMsg"
+        from TIOL_PRE_ITEM ti left join T_UMS_MGR_COMPANY tc on ti.COMPANY_ID = tc.COMPANY_ID
+    </select>
+
+    <select id="queryPreMeetingList" resultType="java.util.Map">
+        select tm.MEETING_ID as "meetingId",
+                tm.MEETING_NAME as "meetingName",
+                nvl(tm.TYPE_NAME,'会议类型为空') as "meetingType",
+                tc.COMPANY_SHORT_NAME as "companyName",
+                tm.CREATE_TIME as "createTime",
+                nvl(tm.ERROR_REMARK,'匹配不到错误信息') as "errMsg"
+        from TIOL_PRE_MEETING tm left join T_UMS_MGR_COMPANY tc on tm.COMPANY_ID = tc.COMPANY_ID
+    </select>
+
+    <select id="queryPreSubjectList" resultType="java.util.Map">
+        select ts.SUBJECT_ID as "subjectId",
+                nvl(tm.MEETING_NAME,'会议名称为空') as "meetingName",
+                ts.SUBJECT_NAME as "subjectName",
+                ts.SOURCE_NAME as "sourceName",
+                ts.SPECIAL_NAME as "specialName",
+                ts.ITEM_CODE as "itemCode",
+                ts.CREATE_TIME as "createTime",
+                nvl(ts.ERROR_REMARK,'匹配不到错误信息') as "errMsg"
+        from TIOL_PRE_SUBJECT ts
+        left join TIOL_PRE_MEETING tm on ts.MEETING_ID = tm.MEETING_ID
+    </select>
+
+    <select id="queryPreRegulationtList" resultType="java.util.Map">
+        select tr.REGULATION_ID as "regulationId",
+        tr.REGULATION_NAME as "regulationName",
+        tr.TYPE_NAME as "typeName",
+        tc.COMPANY_SHORT_NAME as "companyName",
+        tr.CREATE_TIME as "createTime",
+        nvl(tr.ERROR_REMARK,'匹配不到错误信息') as "errMsg"
+        from TIOL_PRE_REGULATION tr
+        left join T_UMS_MGR_COMPANY tc on tr.COMPANY_ID = tc.COMPANY_ID
+    </select>
+
+    <select id="checkMeetingNameExist" parameterType="String" resultType="Integer">
+        select count(MEETING_ID) from BIZ_TIOL_MEETING where MEETING_NAME = #{meetingName}
+        and STATUS = 1
+        and COMPANY_ID = #{companyId}
+    </select>
+
+
+</mapper>
+	

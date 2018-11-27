@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.UnifyMapper">
+
+    <select id="queryMeetingList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT ROWNUM AS RN, E.* FROM (
+		SELECT MT.TYPE_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, M.* 
+		FROM BIZ_TIOL_MEETING M
+		LEFT JOIN BIZ_TIOL_MEETING_TYPE MT
+		ON MT.TYPE_ID = M.TYPE_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN BIZ_TIOL_SUBJECT S
+		ON S.MEETING_ID = M.MEETING_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+		AND M.STATUS = 1 AND MT.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+		<where>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+		    	AND M.COMPANY_ID IN (
+				<foreach collection="companyList" item="item" separator="," index="index">
+					'${item.COMPANY_ID}'
+				</foreach>
+				)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND M.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="typeId != null and typeId != ''">
+				AND M.TYPE_ID = #{typeId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingTime != null and meetingTime != ''">
+				AND M.MEETING_TIME = #{meetingTime, jdbcType=VARCHAR} 
+			</if>
+			<if test="moderator != null and moderator != ''">
+				AND M.MODERATOR = #{moderator, jdbcType=VARCHAR} 
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND M.COMPANY_ID = #{companyId, jdbcType=VARCHAR} 
+			</if>
+			<if test="summaryFileId != null and summaryFileId != ''">
+				AND M.SUMMARY_FILE_ID = #{summaryFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="recordFileId != null and recordFileId != ''">
+				AND M.RECORD_FILE_ID = #{recordFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="noticeFileId != null and noticeFileId != ''">
+				AND M.NOTICE_FILE_ID = #{noticeFileId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		ORDER BY MEETING_TIME DESC
+		) E
+	</select>
+	
+	<select id="queryMeetingByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM (
+		SELECT ROWNUM AS RN, E.* FROM (
+		SELECT MT.TYPE_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, M.* 
+		FROM BIZ_TIOL_MEETING M
+		LEFT JOIN BIZ_TIOL_MEETING_TYPE MT
+		ON MT.TYPE_ID = M.TYPE_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN BIZ_TIOL_SUBJECT S
+		ON S.MEETING_ID = M.MEETING_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+		AND M.STATUS = 1 AND MT.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+		<where>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+		    	AND M.COMPANY_ID IN (
+				<foreach collection="companyList" item="item" separator="," index="index">
+					'${item.COMPANY_ID}'
+				</foreach>
+				)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND M.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="typeId != null and typeId != ''">
+				AND M.TYPE_ID = #{typeId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingTime != null and meetingTime != ''">
+				AND M.MEETING_TIME = #{meetingTime, jdbcType=VARCHAR} 
+			</if>
+			<if test="moderator != null and moderator != ''">
+				AND M.MODERATOR = #{moderator, jdbcType=VARCHAR} 
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND M.COMPANY_ID = #{companyId, jdbcType=VARCHAR} 
+			</if>
+			<if test="summaryFileId != null and summaryFileId != ''">
+				AND M.SUMMARY_FILE_ID = #{summaryFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="recordFileId != null and recordFileId != ''">
+				AND M.RECORD_FILE_ID = #{recordFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="noticeFileId != null and noticeFileId != ''">
+				AND M.NOTICE_FILE_ID = #{noticeFileId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		ORDER BY MEETING_TIME DESC
+		) E
+		) WHERE RN &gt; #{minRow, jdbcType=INTEGER} AND RN &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getyMeetingTotalCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+	    SELECT COUNT(*) FROM (
+	    SELECT MT.TYPE_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, M.* 
+		FROM BIZ_TIOL_MEETING M
+		LEFT JOIN BIZ_TIOL_MEETING_TYPE MT
+		ON MT.TYPE_ID = M.TYPE_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN BIZ_TIOL_SUBJECT S
+		ON S.MEETING_ID = M.MEETING_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+		AND M.STATUS = 1 AND MT.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+		<where>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+		    	AND M.COMPANY_ID IN (
+				<foreach collection="companyList" item="item" separator="," index="index">
+					'${item.COMPANY_ID}'
+				</foreach>
+				)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND M.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="typeId != null and typeId != ''">
+				AND M.TYPE_ID = #{typeId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingTime != null and meetingTime != ''">
+				AND M.MEETING_TIME = #{meetingTime, jdbcType=VARCHAR} 
+			</if>
+			<if test="moderator != null and moderator != ''">
+				AND M.MODERATOR = #{moderator, jdbcType=VARCHAR} 
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND M.COMPANY_ID = #{companyId, jdbcType=VARCHAR} 
+			</if>
+			<if test="summaryFileId != null and summaryFileId != ''">
+				AND M.SUMMARY_FILE_ID = #{summaryFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="recordFileId != null and recordFileId != ''">
+				AND M.RECORD_FILE_ID = #{recordFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="noticeFileId != null and noticeFileId != ''">
+				AND M.NOTICE_FILE_ID = #{noticeFileId, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		)
+	</select>
+	
+	<select id="querySubjectList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT ROWNUM AS RN, E.* FROM (
+		SELECT M.MEETING_NAME, M.MEETING_TIME, O.SOURCE_NAME, P.SPECIAL_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, S.* 
+		FROM BIZ_TIOL_SUBJECT S
+		LEFT JOIN BIZ_TIOL_MEETING M
+		ON M.MEETING_ID = S.MEETING_ID
+		LEFT JOIN BIZ_TIOL_SOURCE O
+		ON O.SOURCE_ID = S.SOURCE_ID
+		LEFT JOIN BIZ_TIOL_SPECIAL P
+		ON P.SPECIAL_ID = S.SPECIAL_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+	    AND M.STATUS = 1 AND O.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+	    <where>
+		    <if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyList" separator="," item="item" index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="subjectId != null and subjectId != ''">
+				AND S.SUBJECT_ID = #{subjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND S.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectCode != null and subjectCode != ''">
+				AND S.SUBJECT_CODE = #{subjectCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				AND S.SUBJECT_NAME LIKE '%'|| #{subjectName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="sourceId != null and sourceId != ''">
+				AND S.SOURCE_ID = #{sourceId, jdbcType=VARCHAR} 
+			</if>
+			<if test="dpecialId != null and dpecialId != ''">
+				AND S.SPECIAL_ID = #{dpecialId, jdbcType=VARCHAR} 
+			</if>
+			<if test="itemId != null and itemId != ''">
+				AND S.ITEM_ID = #{itemId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relMeetingId != null and relMeetingId != ''">
+				AND S.REL_MEETING_ID = #{relMeetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relSubjectId != null and relSubjectId != ''">
+				AND S.REL_SUBJECT_ID = #{relSubjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="passFlag != null and passFlag != ''">
+				AND S.PASS_FLAG = #{passFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="approvalFlag != null and approvalFlag != ''">
+				AND S.APPROVAL_FLAG = #{approvalFlag, jdbcType=VARCHAR}
+			</if>
+			<if test="adoptFlag != null and adoptFlag != ''">
+				AND S.ADOPT_FLAG = #{adoptFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="opinionFileId != null and opinionFileId != ''">
+				AND S.OPINION_FILE_ID = #{opinionFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectFileId != null and subjectFileId != ''">
+				AND S.SUBJECT_FILE_ID = #{subjectFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectResult != null and subjectResult != ''">
+				AND S.SUBJECT_RESULT LIKE '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'# 
+			</if>
+			<if test="verifyFlag != null and verifyFlag != ''">
+				AND S.VERIFY_FLAG = #{verifyFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="vialag != null and vialag != ''">
+				AND S.VIA_FLAG = #{vialag, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="levelCode != null and levelCode != ''">
+				AND SUBSTR(S.SUBJECT_CODE, 0, 1) = #{levelCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		ORDER BY MEETING_TIME DESC
+		) E
+	</select>
+	
+	<select id="querySubjectByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM (
+		SELECT ROWNUM AS RN, E.* FROM (
+		SELECT M.MEETING_NAME, M.MEETING_TIME, T.TYPE_NAME, O.SOURCE_NAME, P.SPECIAL_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, S.* 
+		FROM BIZ_TIOL_SUBJECT S
+		LEFT JOIN BIZ_TIOL_MEETING M
+		ON M.MEETING_ID = S.MEETING_ID
+		LEFT JOIN BIZ_TIOL_MEETING_TYPE T
+		ON T.TYPE_ID = M.TYPE_ID
+		LEFT JOIN BIZ_TIOL_SOURCE O
+		ON O.SOURCE_ID = S.SOURCE_ID
+		LEFT JOIN BIZ_TIOL_SPECIAL P
+		ON P.SPECIAL_ID = S.SPECIAL_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+	    AND M.STATUS = 1 AND O.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+	    <where>
+		    <if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyList" separator="," item="item" index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="subjectId != null and subjectId != ''">
+				AND S.SUBJECT_ID = #{subjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND S.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectCode != null and subjectCode != ''">
+				AND S.SUBJECT_CODE = #{subjectCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				AND S.SUBJECT_NAME LIKE '%'|| #{subjectName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="sourceId != null and sourceId != ''">
+				AND S.SOURCE_ID = #{sourceId, jdbcType=VARCHAR} 
+			</if>
+			<if test="dpecialId != null and dpecialId != ''">
+				AND S.SPECIAL_ID = #{dpecialId, jdbcType=VARCHAR} 
+			</if>
+			<if test="itemId != null and itemId != ''">
+				AND S.ITEM_ID = #{itemId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relMeetingId != null and relMeetingId != ''">
+				AND S.REL_MEETING_ID = #{relMeetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relSubjectId != null and relSubjectId != ''">
+				AND S.REL_SUBJECT_ID = #{relSubjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="passFlag != null and passFlag != ''">
+				AND S.PASS_FLAG = #{passFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="approvalFlag != null and approvalFlag != ''">
+				AND S.APPROVAL_FLAG = #{approvalFlag, jdbcType=VARCHAR}
+			</if>
+			<if test="adoptFlag != null and adoptFlag != ''">
+				AND S.ADOPT_FLAG = #{adoptFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="opinionFileId != null and opinionFileId != ''">
+				AND S.OPINION_FILE_ID = #{opinionFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectFileId != null and subjectFileId != ''">
+				AND S.SUBJECT_FILE_ID = #{subjectFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectResult != null and subjectResult != ''">
+				AND S.SUBJECT_RESULT LIKE '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'# 
+			</if>
+			<if test="verifyFlag != null and verifyFlag != ''">
+				AND S.VERIFY_FLAG = #{verifyFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="vialag != null and vialag != ''">
+				AND S.VIA_FLAG = #{vialag, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="levelCode != null and levelCode != ''">
+				AND SUBSTR(S.SUBJECT_CODE, 0, 1) = #{levelCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		ORDER BY MEETING_TIME DESC
+		) E
+		) WHERE RN &gt; #{minRow, jdbcType=INTEGER} AND RN &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getSubjectTotalCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+	    SELECT COUNT(*) FROM (
+	    SELECT M.MEETING_NAME, M.MEETING_TIME, T.TYPE_NAME, O.SOURCE_NAME, P.SPECIAL_NAME, C.COMPANY_SHORT_NAME, C.COMPANY_NAME, S.* 
+		FROM BIZ_TIOL_SUBJECT S
+		LEFT JOIN BIZ_TIOL_MEETING M
+		ON M.MEETING_ID = S.MEETING_ID
+		LEFT JOIN BIZ_TIOL_MEETING_TYPE T
+		ON T.TYPE_ID = M.TYPE_ID
+		LEFT JOIN BIZ_TIOL_SOURCE O
+		ON O.SOURCE_ID = S.SOURCE_ID
+		LEFT JOIN BIZ_TIOL_SPECIAL P
+		ON P.SPECIAL_ID = S.SPECIAL_ID
+		LEFT JOIN T_UMS_MGR_COMPANY C
+		ON C.COMPANY_ID = M.COMPANY_ID
+		LEFT JOIN TIOL_SUBJECT_ITEM SI
+		ON SI.SUBJECT_ID = S.SUBJECT_ID
+		LEFT JOIN BIZ_TIOL_ITEM I
+		ON I.ITEM_ID = SI.ITEM_ID
+	    AND M.STATUS = 1 AND O.STATUS = 1 AND S.STATUS = 1 AND I.STATUS = 1
+	    <where>
+		    <if test="catalogList != null and catalogList.size() > 0">
+		    	AND I.CATALOG_ID IN (
+				<foreach collection="catalogList" separator="," item="item" index="index">
+					#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+				AND M.TYPE_ID IN (
+				<foreach collection="meetingTypeList" separator="," item="item" index="index">
+					#{item.TYPE_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyList != null and companyList.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyList" separator="," item="item" index="index">
+					#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        	</foreach>
+	        	)
+			</if>
+			<if test="companyIds != null and companyIds.size() > 0">
+				AND M.COMPANY_ID IN (
+				<foreach collection="companyIds" item="item" separator="," index="index">
+					'${item.companyId}'
+				</foreach>
+				)
+			</if>
+			<if test="subjectId != null and subjectId != ''">
+				AND S.SUBJECT_ID = #{subjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="meetingId != null and meetingId != ''">
+				AND S.MEETING_ID = #{meetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectCode != null and subjectCode != ''">
+				AND S.SUBJECT_CODE = #{subjectCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectName != null and subjectName != ''">
+				AND S.SUBJECT_NAME LIKE '%'|| #{subjectName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="sourceId != null and sourceId != ''">
+				AND S.SOURCE_ID = #{sourceId, jdbcType=VARCHAR} 
+			</if>
+			<if test="dpecialId != null and dpecialId != ''">
+				AND S.SPECIAL_ID = #{dpecialId, jdbcType=VARCHAR} 
+			</if>
+			<if test="itemId != null and itemId != ''">
+				AND S.ITEM_ID = #{itemId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relMeetingId != null and relMeetingId != ''">
+				AND S.REL_MEETING_ID = #{relMeetingId, jdbcType=VARCHAR} 
+			</if>
+			<if test="relSubjectId != null and relSubjectId != ''">
+				AND S.REL_SUBJECT_ID = #{relSubjectId, jdbcType=VARCHAR} 
+			</if>
+			<if test="passFlag != null and passFlag != ''">
+				AND S.PASS_FLAG = #{passFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="approvalFlag != null and approvalFlag != ''">
+				AND S.APPROVAL_FLAG = #{approvalFlag, jdbcType=VARCHAR}
+			</if>
+			<if test="adoptFlag != null and adoptFlag != ''">
+				AND S.ADOPT_FLAG = #{adoptFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="opinionFileId != null and opinionFileId != ''">
+				AND S.OPINION_FILE_ID = #{opinionFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectFileId != null and subjectFileId != ''">
+				AND S.SUBJECT_FILE_ID = #{subjectFileId, jdbcType=VARCHAR} 
+			</if>
+			<if test="subjectResult != null and subjectResult != ''">
+				AND S.SUBJECT_RESULT LIKE '%'|| #{subjectResult, jdbcType=VARCHAR} ||'%'# 
+			</if>
+			<if test="verifyFlag != null and verifyFlag != ''">
+				AND S.VERIFY_FLAG = #{verifyFlag, jdbcType=VARCHAR} 
+			</if>
+			<if test="vialag != null and vialag != ''">
+				AND S.VIA_FLAG = #{vialag, jdbcType=VARCHAR}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				AND (C.COMPANY_SHORT_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				OR C.COMPANY_NAME LIKE '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="meetingName != null and meetingName != ''">
+				AND M.MEETING_NAME LIKE '%'|| #{meetingName, jdbcType=VARCHAR} ||'%' 
+			</if>
+			<if test="levelCode != null and levelCode != ''">
+				AND SUBSTR(S.SUBJECT_CODE, 0, 1) = #{levelCode, jdbcType=VARCHAR} 
+			</if>
+			<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+				AND TO_CHAR(M.MEETING_TIME,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+			</if>
+		</where>
+		)
+	</select>
+
+</mapper>

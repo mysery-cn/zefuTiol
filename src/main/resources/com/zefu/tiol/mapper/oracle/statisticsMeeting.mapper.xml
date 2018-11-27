@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.StatisticsMeetingMapper">
+
+	<select id="queryMeetingDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select sum(ti.meeting_quantity) as "value",
+			   mt.type_name as "name", mt.order_number
+		from tiol_statistics_meeting ti, biz_tiol_meeting_type mt
+		where ti.type_id = mt.type_id and mt.status = 1
+			<if test="industryID != null and industryID != ''">
+				and ti.industry_id = #{industryID, jdbcType=VARCHAR}
+			</if>
+			<if test="companyId!=null and companyId !=''">
+				 and ti.company_id=#{companyId, jdbcType=VARCHAR}
+			</if>
+		group by ti.type_id, mt.type_name, mt.order_number)
+		order by order_number asc
+	</select>
+	
+	<select id="queryDecisionMeetingDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(nvl(ti.meeting_quantity,0)) as "value",
+			   tt.type_name as "name" ,
+			   tt.order_number
+		from BIZ_TIOL_MEETING_TYPE tt 
+		left join tiol_statistics_meeting ti on tt.type_id = ti.type_id 
+		and ti.year = to_char(sysdate,'yyyy')
+		where tt.status = 1
+		group by tt.type_id,tt.type_name,tt.order_number
+		order by tt.order_number asc
+	</select>
+	
+	<select id="queryDecisionSubjectDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(nvl(ti.pass_quantity,0)) as "pass",
+			   sum(nvl(ti.defer_quantity,0)) as "defer" , 
+			   sum(nvl(ti.veto_quantity,0)) as "veto",
+			   ca.catalog_name as "name",ca.order_number  
+		from biz_tiol_catalog ca
+		left join biz_tiol_catalog cas on ca.catalog_id = cas.catalog_pid
+		left join tiol_statistics_subject ti 
+		on ti.CATALOG_SECOND_ID = cas.catalog_id and ti.year = to_char(sysdate,'yyyy')
+		<if test="industryId != null and industryId != ''">
+			and ti.industry_id = #{industryId, jdbcType=VARCHAR}
+		</if>
+		where ca.catalog_level = 1 and ca.status = 1
+		group by ca.catalog_name,ca.order_number
+		order by ca.order_number
+	</select>
+	
+	<select id="queryMeetingClassDetail" parameterType="java.util.Map" resultType="java.util.LinkedHashMap">
+		select * from (select * from (select t.*,rownum RN from (
+		select a.yearmonth as "name", a.year, a.month, 
+		<if test="typelist != null and typelist.size() > 0">
+			<foreach collection="typelist" separator="," item="item" index="index">
+				sum("${item.TYPE_ID}") as "value${index}"
+            </foreach>
+        </if>
+		from (select m.type_name, m.year, m.month, concat(concat(m.year,'年'),concat(m.month,'月')) as yearmonth,
+		<if test="typelist != null and typelist.size() > 0">
+			<foreach collection="typelist" separator="," item="item" index="index">
+				sum(case when m.type_id = #{item.TYPE_ID,jdbcType=VARCHAR} then m.meeting_quantity else 0 end) as "${item.TYPE_ID}"
+            </foreach>
+        </if>
+       	from tiol_statistics_meeting m
+        <where>
+          	<if test="industryId != null and industryId != ''">
+				and m.industry_id = #{industryId}
+		  	</if>
+        </where>
+        group by m.type_name, m.year, m.month) a
+        group by a.yearmonth, a.year, a.month
+        order by a.year, a.month desc) t)
+		where RN &lt;= 6)
+		order by year, month asc
+	</select>
+	
+	<select id="queryMeetingByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.* from (
+			select p.*,rownum rn
+			<if test="sql != null and sql != ''">
+				,
+				${sql} as SUMS
+			</if>
+ 			 from (select distinct c.company_id, c.company_short_name, c.DISPLAY_ORDER
+ 			 <if test="typelist != null and typelist.size() > 0">
+				,
+				<foreach collection="typelist" separator="," item="item" index="index">
+					'${item.TYPE_ID}' as "typeId${index}",
+					'${item.TYPE_NAME}' as "typeName${index}",
+		            (select count(*) from biz_tiol_meeting m 
+		            where m.status = 1 and m.company_id = t.company_id 
+		            and m.type_id = #{item.TYPE_ID,jdbcType=VARCHAR}) as TYPECODE${index}
+	            </foreach>
+	          </if>
+  			 from t_ums_mgr_company c
+             left join biz_tiol_meeting t on c.company_id = t.company_id
+             <if test="year != null and year != ''">
+                 and to_char(t.MEETING_TIME,'yyyy') = #{year, jdbcType=VARCHAR}
+             </if>
+             left join biz_tiol_subject s on s.meeting_id = t.meeting_id
+             and s.status = 1 and t.status = 1
+             where c.inst_level = 2
+	    		<if test="companyName != null and companyName != ''">
+	    			and c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				</if>
+				<if test="industryId != null and industryId != ''">
+					and c.inst_id = #{industryId, jdbcType=VARCHAR}
+				</if>
+				<if test="sourceId != null and sourceId != ''">
+					and s.source_id = #{sourceId, jdbcType=VARCHAR}
+				</if>
+			order by DISPLAY_ORDER asc
+			) p) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getMeetingTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select count(*)
+  			from (select t.* from (
+			select p.*
+ 			 from (select distinct c.company_id, c.company_short_name, c.DISPLAY_ORDER,
+ 			 <if test="typelist != null and typelist.size() > 0">
+				<foreach collection="typelist" separator="," item="item" index="index">
+					'${item.TYPE_ID}' as "typeId${index}",
+					'${item.TYPE_NAME}' as "typeName${index}",
+		            (select count(*) from biz_tiol_meeting m 
+		            where m.status =1 and m.company_id = t.company_id 
+		            and m.type_id = #{item.TYPE_ID,jdbcType=VARCHAR}) as TYPECODE${index}
+	            </foreach>
+	         </if>
+  			 from t_ums_mgr_company c
+             left join biz_tiol_meeting t on c.company_id = t.company_id
+             left join biz_tiol_subject s on s.meeting_id = t.meeting_id
+             and s.status = 1 and t.status = 1
+             where c.inst_level = 2
+	    		<if test="companyName != null and companyName != ''">
+	    			and c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				</if>
+				<if test="industryId != null and industryId != ''">
+					and c.inst_id = #{industryId, jdbcType=VARCHAR}
+				</if>
+				<if test="sourceId != null and sourceId != ''">
+					and s.source_id = #{sourceId, jdbcType=VARCHAR}
+				</if>
+				<if test="year != null and year != ''">
+					and to_char(t.MEETING_TIME,'yyyy') = #{year, jdbcType=VARCHAR}
+				</if>
+			) p) t)
+	</select>
+	
+	<select id="listStatisticsMeeting" resultType="java.util.Map">
+		select statistics_id as "statisticsId",company_id as "companyId",type_id as "typeId",type_name as "typeName",
+		meeting_quantity as "meetingQuantity",industry_id as "industryId",year as "year",statistics_time as "statisticsTime",
+		(select inst_name from t_ums_mgr_inst where inst_id=t.INDUSTRY_ID) as "industryName",
+		(select company_short_name from t_ums_mgr_company where company_id=t.company_id) as "companyName"
+		from tiol_statistics_meeting t
+	</select>
+
+</mapper>
+	

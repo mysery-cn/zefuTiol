@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.zefu.tiol.mapper.oracle.StatisticsIndustryMapper">
+
+	<resultMap id="statistics"
+		type="com.zefu.tiol.pojo.StatisticsIndustry">
+		<result column="INST_ID" property="instId"
+			jdbcType="VARCHAR" />
+		<result column="INST_NAME" property="instName"
+			jdbcType="VARCHAR" />
+		<result column="PARENT_INST_ID" property="parentInstId"
+			jdbcType="VARCHAR" />
+		<result column="PARENT_INST_NAME" property="parentInstName"
+			jdbcType="VARCHAR" />
+		<result column="DISPLAY_ORDER" property="displayOrder"
+			jdbcType="INTEGER" />
+		<result column="WHOLE_INST_ID" property="wholeInstId"
+			jdbcType="VARCHAR" />
+		<result column="WHOLE_INST_ID" property="wholeInstName"
+			jdbcType="VARCHAR" />
+		<result column="INST_LEVEL" property="instLevel"
+			jdbcType="INTEGER" />
+		<result column="INST_TYPE" property="instType"
+			jdbcType="VARCHAR" />
+		<result column="EXTEND_INST_ID" property="extendInstId"
+			jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryIndustryList"  resultMap="statistics">
+		select * from T_UMS_MGR_INST t where t.PARENT_INST_NAME = '国务院国有资产监督管理委员会'
+	</select>
+
+
+</mapper>
+	

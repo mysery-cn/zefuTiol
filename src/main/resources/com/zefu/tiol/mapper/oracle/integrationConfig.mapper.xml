@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.zefu.tiol.mapper.oracle.IntegrationConfigMapper">
+
+    <insert id="saveInterfaceConfig" parameterType="java.util.Map">
+        insert into tiol_cfg_interface (id, address, user_name, password, update_time, update_user)
+        values (#{id}, #{address}, #{user_name}, #{password}, #{update_time}, #{update_user})
+    </insert>
+
+    <update id="updateInterfaceConfig" parameterType="java.util.Map">
+        update tiol_cfg_interface set
+        <trim suffixOverrides=",">
+            <if test="address != null">
+                address = #{address},
+            </if>
+            <if test="user_name != null">
+                user_name = #{user_name},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="update_time != null">
+                update_time = #{update_time},
+            </if>
+            <if test="update_user != null">
+                update_user = #{update_user}
+            </if>
+        </trim>
+    </update>
+
+    <select id="getInterfaceConfig" resultType="java.util.Map">
+        select id "ID", address "ADDRESS", user_name "USER_NAME", password "PASSWORD", update_time "UPDATE_TIME", update_user "UPDATE_USER"
+        from tiol_cfg_interface
+    </select>
+
+    <sql id="tiol_cfg_service_column">
+        id "id",
+        system_name "system_name",
+        user_name "user_name",
+        password "password",
+        organization_name "organization_name",
+        update_time "update_time",
+        update_user "update_user"
+    </sql>
+
+    <select id="getServiceConfigById" parameterType="java.lang.String" resultType="java.util.Map">
+        select <include refid="tiol_cfg_service_column"/>
+        from tiol_cfg_service
+        where id = #{id}
+    </select>
+
+    <select id="getServiceConfigByPage" parameterType="java.util.Map" resultType="java.util.Map">
+        select *
+        from(
+            select a.*, rownum rn
+            from (
+                select <include refid="tiol_cfg_service_column"/>
+                from tiol_cfg_service
+            ) a
+            where rownum &lt;= #{maxRow}
+        )
+        where rn &gt;= #{minRow}
+    </select>
+
+    <select id="getServiceConfigCount" resultType="java.lang.Integer">
+        select count(id) from tiol_cfg_service
+    </select>
+
+    <insert id="insertServiceConfig" parameterType="java.util.Map">
+        insert into tiol_cfg_service(id, user_name, password, organization_name, system_name, update_time, update_user)
+        values(#{id}, #{user_name}, #{password}, #{organization_name}, #{system_name}, #{update_time}, #{update_user})
+    </insert>
+    
+    <delete id="deleteServiceConfigById" parameterType="java.util.List">
+        delete from tiol_cfg_service where id in
+            <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </delete>
+    
+    <update id="updateServiceConfig" parameterType="java.util.Map">
+        update tiol_cfg_service set
+        <trim suffixOverrides=",">
+            <if test="user_name != null">
+                user_name = #{user_name},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="organization_name != null">
+                organization_name = #{organization_name},
+            </if>
+            <if test="system_name != null">
+                system_name = #{system_name},
+            </if>
+            <if test="update_time != null">
+                update_time = #{update_time},
+            </if>
+            <if test="update_user != null">
+                update_user = #{update_user},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+</mapper>

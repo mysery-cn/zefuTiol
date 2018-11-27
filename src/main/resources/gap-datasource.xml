@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>java:comp/env/szyd_orcl</value>
+		</property>
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.zefu.tiol.pojo" />
+		<property name="typeAliasesSuperType" value="com.zefu.tiol.pojo.BaseEntity" />
+		<property name="mapperLocations" value="classpath:/com/zefu/tiol/mapper/oracle/*.xml" />
+	</bean>
+	
+	<bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zefu.tiol.mapper.oracle" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+	</bean>
+	
+	<bean id="dataSource_screen" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>java:comp/env/szyd_orcl</value>
+		</property>
+	</bean>
+    <bean id="sqlSessionFactory_screen" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource_screen" />
+		<property name="typeAliasesPackage" value="com.zefu.tiol.pojo" />
+		<property name="typeAliasesSuperType" value="com.zefu.tiol.pojo.BaseEntity" />
+		<property name="mapperLocations" value="classpath:/com/zefu/tiol/mapper/mysql/*.xml" />
+	</bean>
+	
+	<bean id="mapperScannerConfigurer_screen" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zefu.tiol.mapper.mysql" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory_screen" />
+		<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+	</bean>
+	
+	<bean id="dataSource_reduct" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>java:comp/env/szyd_orcl</value>
+		</property>
+	</bean>
+    <bean id="sqlSessionFactory_reduct" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource_reduct" />
+		<property name="typeAliasesPackage" value="com.zefu.tiol.pojo" />
+		<property name="typeAliasesSuperType" value="com.zefu.tiol.pojo.BaseEntity" />
+		<property name="mapperLocations" value="classpath:/com/zefu/tiol/mapper/reduct/*.xml" />
+	</bean>
+	
+	<bean id="mapperScannerConfigurer_reduct" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zefu.tiol.mapper.reduct" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory_reduct" />
+		<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+	</bean>
+	
+	<bean id="dataSource_cadre" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>java:comp/env/szyd_orcl</value>
+		</property>
+	</bean>
+    <bean id="sqlSessionFactory_cadre" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource_cadre" />
+		<property name="typeAliasesPackage" value="com.zefu.tiol.pojo" />
+		<property name="typeAliasesSuperType" value="com.zefu.tiol.pojo.BaseEntity" />
+		<property name="mapperLocations" value="classpath:/com/zefu/tiol/mapper/cadre/*.xml" />
+	</bean>
+	
+	<bean id="mapperScannerConfigurer_cadre" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zefu.tiol.mapper.cadre" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory_cadre" />
+		<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+	</bean>
+
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>coa</value>
+		</property>
+		<property name="resourceRef">
+			<value>false</value>
+		</property>
+		<property name="jndiEnvironment">
+			<props>
+				<prop key="java.naming.factory.initial">
+					weblogic.jndi.WLInitialContextFactory
+				</prop>
+			</props>
+		</property>
+	</bean> -->
+
+
+</beans>

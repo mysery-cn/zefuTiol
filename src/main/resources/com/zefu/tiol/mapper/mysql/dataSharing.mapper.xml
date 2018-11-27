@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.mysql.DataSharingMapper">
+
+	<select id="listGbdTable" resultType="java.util.Map" >
+		select * from  gb_dtable
+	</select>
+	
+	<select id="getTableName" resultType="java.lang.String" >
+		select DTABLE from  gb_dtable where RESOURCENAME=#{resourceName,jdbcType=VARCHAR}
+	</select>
+	
+	<delete id="deleteTableData">
+	   delete from ${tableName} 
+	</delete>
+	
+	<insert id="insertForStatisticsDecision" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,行业名称,统一社会信用代码,企业名称,统计对象名称,统计类型（1：任务来源；2：事项目录）,会议数量,议题数量,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(),#{item.industryName,jdbcType=VARCHAR}, #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.statisticsName,jdbcType=VARCHAR}, #{item.statisticsType,jdbcType=VARCHAR},#{item.meetingQuantity,jdbcType=INTEGER},
+        #{item.subjectQuantity,jdbcType=INTEGER},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsRegulation" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,行业名称,统一社会信用代码,企业名称,制度类型名称,制度数,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(),#{item.industryName,jdbcType=VARCHAR}, #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.typeName,jdbcType=VARCHAR}, #{item.quantity,jdbcType=INTEGER},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsItem" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,行业名称,统一社会信用代码,企业名称,事项目录名称,事项数,年度,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(),#{item.industryName,jdbcType=VARCHAR}, #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.catalogName,jdbcType=VARCHAR},#{item.itemQuantity,jdbcType=INTEGER},
+        #{item.year,jdbcType=INTEGER},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsMeeting" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,行业名称,统一社会信用代码,企业名称,会议类型名称,会议数,年度,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(),#{item.industryName,jdbcType=VARCHAR}, #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.typeName,jdbcType=VARCHAR},#{item.meetingQuantity,jdbcType=INTEGER},
+        #{item.year,jdbcType=INTEGER},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsSubject" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,行业名称,统一社会信用代码,企业名称,事项目录名称,议题数量,年度,季度,统计时间,议题通过数,议题缓态数,议题否决数) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+          (NOW(),#{item.industryName,jdbcType=VARCHAR}, #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+           #{item.catalogName,jdbcType=VARCHAR},#{item.subjectQuantity,jdbcType=INTEGER},#{item.year,jdbcType=INTEGER},#{item.quarter,jdbcType=INTEGER},
+           #{item.statisticsTime,jdbcType=VARCHAR},#{item.passQuantity,jdbcType=INTEGER},#{item.deferQuantity,jdbcType=INTEGER},
+           #{item.vetoQuantity,jdbcType=INTEGER})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsException" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,统一社会信用代码,企业名称,异常类型,数量,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(), #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.exceptionType,jdbcType=VARCHAR},#{item.quantity,jdbcType=INTEGER},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+	
+	<insert id="insertForStatisticsCpyRegulation" parameterType="java.util.List">
+	   insert into ${tableName}  (UPLOADDATE,统一社会信用代码,企业名称,制度类型,是否上传,统计时间) values
+	   <foreach collection="list" item="item" index="index" separator="," >
+        (NOW(), #{item.companyId,jdbcType=VARCHAR}, #{item.companyName,jdbcType=VARCHAR}, 
+        #{item.typeName,jdbcType=VARCHAR},#{item.isUpload,jdbcType=VARCHAR},#{item.statisticsTime,jdbcType=VARCHAR})
+       </foreach>
+	</insert>
+</mapper>
+	

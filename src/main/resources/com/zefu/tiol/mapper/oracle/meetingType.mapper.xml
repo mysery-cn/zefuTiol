@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.MeetingTypeMapper">
+	
+	<select id="queryList" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_meeting_type where status = 1 
+		<if test="typeName != null and typeName != ''">
+			and type_name = #{typeName, jdbcType=VARCHAR}
+		</if>
+		order by order_number asc
+	</select>
+	
+	<select id="queryMeetingTypeDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select type_name as "typeName",
+			   type_code as "typeCode",
+			   GROUP_TYPE as "groupType",
+			   REGULATION_TYPE_ID as "regulationType",
+			   type_id as "typeId",
+			   order_number as "orderNumber",
+			   ALIAS as "alias"
+		from BIZ_TIOL_MEETING_TYPE where type_id = #{typeId,jdbcType=VARCHAR}
+	</select>
+	
+	<delete id="deleteMeetingType" parameterType="java.util.Map"> 
+		delete from BIZ_TIOL_MEETING_TYPE where type_id in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item,jdbcType=VARCHAR}
+		</foreach>
+	</delete>
+	
+	<update id="updateMeetingType" parameterType="java.util.Map">
+		update BIZ_TIOL_MEETING_TYPE set 
+			   TYPE_NAME = #{typeName,jdbcType=VARCHAR},
+			   TYPE_CODE = #{typeCode,jdbcType=VARCHAR},
+			   GROUP_TYPE = #{groupType,jdbcType=VARCHAR},
+			   REGULATION_TYPE_ID = #{regulationType,jdbcType=VARCHAR},
+			   UPDATE_TIME = sysdate,
+			   UPDATE_USER = #{CURRENT_USER.userId,jdbcType=VARCHAR},
+			   ORDER_NUMBER = #{orderNumber,jdbcType=VARCHAR},
+			   ALIAS = #{alias,jdbcType=VARCHAR}
+		where type_id = #{typeId,jdbcType=VARCHAR}
+	</update>
+	
+	<insert id="saveMeetingType" parameterType="java.util.Map">
+		insert into BIZ_TIOL_MEETING_TYPE
+		(FID,TYPE_ID,TYPE_NAME,TYPE_CODE,GROUP_TYPE,REGULATION_TYPE_ID,status,create_time,create_user,ORDER_NUMBER,ALIAS)
+		values
+		(#{FID,jdbcType=VARCHAR},#{FID,jdbcType=VARCHAR},#{typeName,jdbcType=VARCHAR},#{typeCode,jdbcType=VARCHAR},#{groupType,jdbcType=VARCHAR},#{regulationType,jdbcType=VARCHAR},1,sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR},#{orderNumber,jdbcType=VARCHAR},#{alias,jdbcType=VARCHAR}) 
+	</insert>
+	
+	<select id="queryMeetingTypeListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select tm.type_name as "typeName",
+			   tm.type_code as "typeCode",
+			   tm.GROUP_TYPE as "groupType",
+			   tm.REGULATION_TYPE_ID as "regulationType",
+			   tm.type_id as "typeId",
+			   tr.type_name as "regulationTypeName",
+			   tm.order_number as "orderNumber",
+			   tm.ALIAS as "alias"
+		from BIZ_TIOL_MEETING_TYPE tm 
+		left join biz_tiol_regulation_type tr on tm.regulation_type_id = tr.type_id
+		order by tm.order_number asc
+	</select>
+	
+	
+	
+	
+	
+</mapper>
+	

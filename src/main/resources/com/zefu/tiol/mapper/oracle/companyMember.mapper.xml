@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.CompanyMemberMapper">
+
+	<select id="queryCompanyMemberList" parameterType="java.util.Map" resultType="java.util.Map">
+		select wm_concat(name) as name,wm_concat(position) as position,group_type
+		from (select m.name, m.position, m.group_type,mt.order_number 
+		from biz_tiol_company_member m, tiol_company_member_type mt 
+		where m.status = 1 and mt.status = 1
+		and m.position != 'null' 
+		and m.position is not null
+		and m.group_type = mt.type_name 
+			<if test="param.companyId!=null and param.companyId !=''">
+		 		and m.company_id = #{param.companyId, jdbcType=VARCHAR}
+			</if>
+			<if test="param.groupType!=null and param.groupType !=''">
+				and m.GROUP_TYPE = #{param.groupType, jdbcType=VARCHAR}
+			</if>
+		order by m.order_number asc)
+		group by group_type, order_number
+		order by order_number asc
+	</select>
+
+	<!--查询领导班子成员-->
+	<select id="queryCompanyMemberListByGroup" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_company_member where status = 1
+		<if test="companyId!=null and companyId !=''">
+			and company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="groupType!=null and groupType !=''">
+			and GROUP_TYPE = #{groupType, jdbcType=VARCHAR}
+		</if>
+		order by order_number asc
+	</select>
+
+	
+	<select id="queryAllCompany"  resultType="java.util.Map">
+		select * from t_ums_mgr_company 
+	</select>
+
+
+	<insert id="saveCompanyMember" parameterType="java.util.Map">
+		insert into biz_tiol_company_member
+		(FID,MEMBER_ID,NAME,POSITION,COMPANY_ID,START_DATE,END_DATE,GROUP_TYPE,STATUS,CREATE_TIME,CREATE_USER,REMARK,ORDER_NUMBER)
+		values
+		(#{FID,jdbcType=VARCHAR},#{MEMBER_ID,jdbcType=VARCHAR},#{NAME,jdbcType=VARCHAR},#{POSITION,jdbcType=VARCHAR},
+		#{COMPANY_ID,jdbcType=VARCHAR},#{START_DATE,jdbcType=VARCHAR},#{END_DATE,jdbcType=VARCHAR},#{GROUP_TYPE,jdbcType=VARCHAR},#{STATUS,jdbcType=VARCHAR},#{CREATE_TIME,jdbcType=VARCHAR},
+		#{CREATE_USER,jdbcType=VARCHAR},#{REMARK,jdbcType=VARCHAR},#{ORDER_NUMBER,jdbcType=VARCHAR})
+	</insert>
+	
+	<delete id="deleteCompanyMember" parameterType="java.util.Map">
+		delete from biz_tiol_company_member 
+	</delete>
+</mapper>
+	

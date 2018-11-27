@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.CatalogMapper">
+
+	<select id="queryCatalogLevel" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_catalog where catalog_level = 1 and status = 1
+		<if test="param.catalogName != null and param.catalogName != ''">
+			and catalog_name = #{param.catalogName, jdbcType=VARCHAR}
+		</if>
+		order by order_number
+	</select>
+	
+	<select id="queryCatalogTree" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.catalog_id as "catalogId",
+			   t.catalog_name as "catalogName",
+			   t.catalog_code as "catalogCode"
+		from biz_tiol_catalog t 
+		where t.catalog_level = #{level} and t.STATUS = 1
+		<if test="catalogPid != null and catalogPid != ''">
+			and t.catalog_pid = #{catalogPid}
+		</if>
+		order by t.order_number
+	</select>
+	
+	<select id="queryCompanyName" parameterType="java.util.Map" resultType="String">
+		select COMPANY_NAME as "companyName" from t_ums_mgr_company where COMPANY_ID = #{companyID}
+	</select>
+	
+	<select id="queryCatalogFLevel" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from biz_tiol_catalog 
+		where substr(catalog_code ,0 ,1) = 'F' and catalog_level = 2 and status = 1
+		<if test="catalogName != null and catalogName != ''">
+			and catalog_name = #{catalogName, jdbcType=VARCHAR}
+		</if>
+		order by order_number
+	</select>
+	
+	<select id="queryUmsCatalogList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT CATALOG_CODE "navCode",
+		       CATALOG_NAME "navName",
+		       CATALOG_ID   "navId",
+		       CATALOG_LEVEL   "navLevel",
+		       CASE
+		         WHEN (select COUNT(1)
+		                 FROM biz_tiol_catalog
+		                WHERE CATALOG_PID = nav.CATALOG_ID) > 0 THEN
+		          '{URLNodeData}'
+		         ELSE
+		          ''
+		       END as "childUrl"
+		FROM biz_tiol_catalog nav
+		WHERE CATALOG_PID = #{parentCode,jdbcType=VARCHAR}
+		and nav.STATUS = 1
+		ORDER BY ORDER_NUMBER
+	</select>
+	
+	<select id="queryUmsCatalogListByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select a.*,rownum rn from (
+			SELECT CATALOG_CODE "navCode",
+			       CATALOG_NAME "navName",
+			       CATALOG_ID   "navId",
+			       rownum num
+			FROM biz_tiol_catalog nav
+			WHERE CATALOG_PID = #{parentCode,jdbcType=VARCHAR} and STATUS = 1
+			ORDER BY ORDER_NUMBER
+		) a
+		where num &gt; #{minRow, jdbcType=INTEGER} and num &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="queryUmsCatalogListByPageCount" parameterType="java.util.Map" resultType="Integer">
+			SELECT count(*)
+			FROM biz_tiol_catalog nav
+			WHERE CATALOG_PID = #{parentCode,jdbcType=VARCHAR} and STATUS = 1
+	</select>
+	
+	<select id="queryCatalog" parameterType="java.util.Map" resultType="java.util.Map">
+		select CATALOG_NAME "catalogName",
+			   CATALOG_CODE "catalogCode",
+			   CATALOG_LEVEL "catalogLevel",
+			   ORDER_NUMBER "orderNumber",
+			   CATALOG_PID  "catalogPid",
+			   CATALOG_ID   "catalogId"
+	    from biz_tiol_catalog 
+	    where catalog_id = #{catalogId,jdbcType=VARCHAR} and status = 1
+	</select>
+	
+	<insert id="saveCatalog" parameterType="java.util.Map">
+		insert into biz_tiol_catalog
+		(FID,CATALOG_ID,CATALOG_PID,CATALOG_NAME,CATALOG_CODE,CATALOG_LEVEL,ORDER_NUMBER,CREATE_TIME,CREATE_USER,STATUS)
+		values
+		(#{FID,jdbcType=VARCHAR},#{FID,jdbcType=VARCHAR},#{catalogPid,jdbcType=VARCHAR},
+		 #{catalogName,jdbcType=VARCHAR},#{catalogCode,jdbcType=VARCHAR},#{catalogLevel},
+		 #{orderNumber},sysdate,#{CURRENT_USER.userId,jdbcType=VARCHAR},1)
+	</insert>
+	
+	<update id="updateCatalog" parameterType="java.util.Map">
+		update biz_tiol_catalog 
+		set CATALOG_NAME = #{catalogName,jdbcType=VARCHAR},CATALOG_CODE = #{catalogCode,jdbcType=VARCHAR},
+		ORDER_NUMBER = #{orderNumber},
+		UPDATE_TIME = sysdate,UPDATE_USER = #{CURRENT_USER.userId,jdbcType=VARCHAR},
+		CATALOG_LEVEL = #{catalogLevel}
+		where CATALOG_ID = #{catalogId,jdbcType=VARCHAR}
+	</update>
+	
+	<delete id="deleteCatalog" parameterType="java.util.Map">
+		delete from biz_tiol_catalog where CATALOG_ID in 
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="queryCatalogListByPid" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.*
+		from biz_tiol_catalog t 
+		where t.catalog_pid in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		and t.STATUS = 1
+	</select>
+	
+	<select id="queryCatalogRole" parameterType="java.util.Map" resultType="Integer">
+		select count(*) from t_ums_mgr_role_user 
+		where (role_id = 'qwe' and USER_ID = #{CURRENT_USER.userId,jdbcType=VARCHAR}) 
+		or USER_ID = 'admin'
+	</select>
+	
+	<select id="queryCatalogItem" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+		from biz_tiol_item t
+		where t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+				<if test="companyID != null and companyID != ''">
+					and t.company_id = #{companyID, jdbcType=VARCHAR}
+				</if>
+			  and t.STATUS = 1
+	</select>
+	
+	<select id="queryCatalogItemChirld" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+		from biz_tiol_item t 
+		left join biz_tiol_catalog tc  on tc.CATALOG_ID = t.CATALOG_ID
+		left join biz_tiol_catalog btc on btc.CATALOG_ID = tc.CATALOG_PID 
+		where btc.CATALOG_ID = #{catalogId, jdbcType=VARCHAR}
+			  <if test="companyID != null and companyID != ''">
+				  and t.company_id = #{companyID, jdbcType=VARCHAR}
+			  </if>
+			  and t.STATUS = 1
+	</select>
+	
+	<select id="queryTableCatalogMessage" parameterType="java.util.Map" resultType="java.util.Map">
+		select rownum,a.* from (
+			select bc.catalog_name fname,bct.catalog_name sname,
+				   decode(vt.catalog_Name,bct.catalog_name,'2',vt.catalog_Name) cname,
+			       vt.catalog_code catalogCode
+			from v_tiol_catalog vt
+			left join biz_tiol_catalog bc on vt.FID = bc.catalog_id
+			left join biz_tiol_catalog bct on vt.SID = bct.catalog_id
+			where vt.catalog_level in ('2','3')
+			and vt.catalog_code is not null and vt.catalog_code > '0'
+			order by bc.ORDER_NUMBER,bct.ORDER_NUMBER,vt.catalog_code
+		) a
+	</select>
+	
+	<select id="queryCatalogLevelNumber" resultType="Integer">
+		select max(catalog_level) from biz_tiol_catalog
+	</select>
+
+</mapper>
+	

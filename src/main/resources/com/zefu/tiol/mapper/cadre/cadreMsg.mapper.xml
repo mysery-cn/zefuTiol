@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.cadre.CadreMsgMapper">
+
+	<select id="getCompanyMember" resultType="java.util.Map" >
+		select t.`单位全称`,t.`单位简称`,m.`姓名`,m.`人员编码`,n.`现任职务` AS '职务',n.`任职时间` ,n.`免职时间`
+		from r_db_303127419 t,r_db_303127415 m,r_db_303127421 n
+		where t.`单位编码` = m.`单位编码` and m.`人员编码` = n.`人员编码`
+		group by t.`单位全称`,t.`单位简称`,m.`姓名`,m.`人员编码`,n.`现任职务`,n.`任职时间` ,n.`免职时间`
+	</select>
+	
+	<select id="getCompanyOutDirector" resultType="java.util.Map" >
+		select t.`单位全称`,t.`单位简称`,m.`姓名`,m.`人员编码`,'外部董事' as `职务`
+		from r_db_303127419 t,r_db_303127420 m
+		where t.`单位编码` = m.`单位编码` 
+		group by t.`单位全称`,t.`单位简称`,m.`姓名`,m.`人员编码`
+	</select>
+</mapper>
+	

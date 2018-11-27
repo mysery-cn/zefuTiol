@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.MeetingMapper">
+
+
+	<select id="getMeetingDetailById"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		select btm.meeting_id as
+		"meetingId",
+		btm.meeting_name as "meetingName",
+		btm.company_id as
+		"companyId",
+		btm.alias as "alias",
+		(select company_name from
+		T_UMS_MGR_COMPANY where company_id =
+		btm.company_id) as "companyName",
+		(select type_name from biz_tiol_meeting_type where
+		type_id=btm.type_id) as
+		"meetingType",
+		to_char(btm.meeting_time,'yyyy"年"MM"月"dd"日"') as "meetingTime",
+		nvl((select to_char(wm_concat(t.attendee_name||decode(m.position,'',null,null,null,'（'||m.position||'）'))) from
+		tiol_attendee t
+		left join biz_tiol_company_member m on m.name =
+		t.attendee_name and
+		m.company_id=#{companyId,jdbcType=VARCHAR}
+		where
+		t.attend_flag='1' and t.meeting_id=btm.meeting_id ),'无') as
+		"attendeeMember",
+		btm.summary_file_id as "summaryFileId",
+		btm.notice_file_id as "noticeFileId",
+		ff.file_name as "summaryFileName",
+		ffs.file_name as "noticeFileName",
+		btm.moderator as "moderator"
+		from
+		biz_tiol_meeting btm 
+		left join t_filesys_files ff on btm.summary_file_id = ff.file_id
+		left join t_filesys_files ffs on btm.notice_file_id = ffs.file_id
+		where btm.meeting_id=#{meetingId,jdbcType=VARCHAR}
+		and btm.STATUS = 1
+	</select>
+
+	<select id="queryMeetingByPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from(select ROWNUM rn,a.* from (
+		select m.meeting_id, m.meeting_name,
+		to_char(m.meeting_time,'yyyy"年"mm"月"dd"日"') as
+		meeting_time, mt.type_name, m.summary_file_id,m.notice_file_id,
+		(case when m.summary_file_id is null and m.notice_file_id is null then '否' else '是' end) as "flag"
+		from biz_tiol_meeting m
+		left join biz_tiol_meeting_type mt 
+		on m.type_id = mt.type_id
+		and mt.status = 1
+		left join biz_tiol_subject s
+		on s.meeting_id = m.meeting_id
+		and s.status = 1
+		left join tiol_subject_item si
+		on si.subject_id = s.subject_id 
+		left join biz_tiol_item i
+		on i.item_id = si.item_id
+		and i.status = 1
+		where m.status = 1
+		<if test="catalogList != null and catalogList.size() > 0">
+		    and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item" index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator="," item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item" index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="typeId != null and typeId != ''">
+			and m.type_id = #{typeId, jdbcType=VARCHAR}
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and m.meeting_name like '%'|| #{meetingName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+			and to_char(m.meeting_time,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+		</if>
+		group by m.meeting_id, m.meeting_name, m.meeting_time, mt.type_name, m.summary_file_id, m.notice_file_id
+		order by m.meeting_time desc
+		) a) where rn &gt; #{minRow,
+		jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="getMeetingTotalCount" parameterType="java.util.Map"
+		resultType="Integer">
+		select count(*) from (select ROWNUM rn,a.* from (
+		select m.meeting_id, m.meeting_name,
+		to_char(m.meeting_time,'yyyy"年"mm"月"dd"日"') as
+		meeting_time, mt.type_name, m.summary_file_id,m.notice_file_id,
+		(case when m.summary_file_id is null and m.notice_file_id is null then '否' else '是' end) as "flag"
+		from biz_tiol_meeting m
+		left join biz_tiol_meeting_type mt 
+		on m.type_id = mt.type_id
+		and mt.status = 1
+		left join biz_tiol_subject s
+		on s.meeting_id = m.meeting_id
+		and s.status = 1
+		left join tiol_subject_item si
+		on si.subject_id = s.subject_id 
+		left join biz_tiol_item i
+		on i.item_id = si.item_id
+		and i.status = 1
+		where m.status = 1
+		<if test="catalogList != null and catalogList.size() > 0">
+		    and i.catalog_id in (
+			<foreach collection="catalogList" separator="," item="item" index="index">
+				#{item.CATALOG_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="meetingTypeList != null and meetingTypeList.size() > 0">
+			and m.TYPE_ID IN (
+			<foreach collection="meetingTypeList" separator="," item="item" index="index">
+				#{item.TYPE_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyList != null and companyList.size() > 0">
+			and m.company_id IN (
+			<foreach collection="companyList" separator="," item="item" index="index">
+				#{item.COMPANY_ID,jdbcType=VARCHAR}
+	        </foreach>
+	        )
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and m.company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+		<if test="typeId != null and typeId != ''">
+			and m.type_id = #{typeId, jdbcType=VARCHAR}
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and m.meeting_name like '%'|| #{meetingName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+			and to_char(m.meeting_time,'yyyy-mm-dd') between #{startTime, jdbcType=VARCHAR} and #{endTime, jdbcType=VARCHAR}
+		</if>
+		group by m.meeting_id, m.meeting_name, m.meeting_time, mt.type_name, m.summary_file_id, m.notice_file_id
+		)a)
+	</select>
+
+	<select id="queryMeetingList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from(
+		select tm.meeting_id as "meetingId",
+		tm.meeting_name as
+		"meetingName",
+		to_char(tm.meeting_time,'yyyy-mm-dd') as "meetingTime",
+		tc.company_short_name as "companyName",
+		tc.company_id as "companyId",
+		tmt.type_name as "typeName",
+		ROWNUM rn
+		from biz_tiol_meeting tm
+		left join
+		biz_tiol_meeting_type tmt on tm.type_id = tmt.type_id
+		left join
+		t_ums_mgr_company tc on tm.company_id = tc.company_id
+		where tm.STATUS = 1
+		<if test="companyName != null and companyName != ''">
+			and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="typeID != null and typeID != ''">
+			and tm.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and tm.meeting_name like '%'|| #{meetingName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="companyID != null and companyID != ''">
+			and tm.company_id in
+			<foreach collection="companyID" index="index" item="item"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,
+		jdbcType=INTEGER}
+	</select>
+
+	<select id="queryMeetingListTotalCount"
+		parameterType="java.util.Map" resultType="Integer">
+		select count(tm.meeting_id)
+		from biz_tiol_meeting tm
+		left join
+		biz_tiol_meeting_type tmt on tm.type_id = tmt.type_id
+		left join
+		t_ums_mgr_company tc on tm.company_id = tc.company_id
+		where tm.STATUS = 1
+		<if test="companyName != null and companyName != ''">
+			and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="typeID != null and typeID != ''">
+			and tm.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and tm.meeting_name like '%'|| #{meetingName,
+			jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="companyID != null and companyID != ''">
+			and tm.company_id in
+			<foreach collection="companyID" index="index" item="item"
+				open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+
+	<update id="updateMeeting" parameterType="java.util.Map">
+		update BIZ_TIOL_MEETING set
+		<trim suffixOverrides=",">
+			<if test="MEETING_NAME != null">
+				meeting_name = #{MEETING_NAME,jdbcType=VARCHAR},
+			</if>
+			<if test="TYPE_ID != null and TYPE_ID != ''">
+				type_id = #{TYPE_ID,jdbcType=VARCHAR},
+			</if>
+			<if test="MEETING_TIME != null and MEETING_TIME != ''">
+				meeting_time = to_date(#{MEETING_TIME,jdbcType=VARCHAR},'yyyy-MM-dd HH24:mi:ss'),
+			</if>
+			<if test="COMPANY_ID != null and COMPANY_ID != ''">
+				company_id = #{COMPANY_ID,jdbcType=VARCHAR},
+			</if>
+			<if test="MODERATOR != null and MODERATOR != ''">
+				moderator = #{MODERATOR,jdbcType=VARCHAR},
+			</if>
+			<if test="SUMMARY_FILE_ID != null and SUMMARY_FILE_ID != ''">
+				summary_file_id = #{SUMMARY_FILE_ID,jdbcType=VARCHAR},
+			</if>
+			<if test="RECORD_FILE_ID != null and RECORD_FILE_ID != ''">
+				record_file_id = #{RECORD_FILE_ID,jdbcType=VARCHAR},
+			</if>
+			<if test="NOTICE_FILE_ID != null and NOTICE_FILE_ID != ''">
+				notice_file_id = #{NOTICE_FILE_ID,jdbcType=VARCHAR},
+			</if>
+			<if test="ALIAS != null and ALIAS != ''">
+				alias = #{ALIAS,jdbcType=VARCHAR},
+			</if>
+			<if test="STATUS != null and STATUS != ''">
+				status = #{STATUS,jdbcType=VARCHAR},
+			</if>
+			<if test="UPDATE_USER != null and UPDATE_USER != ''">
+				update_user = #{UPDATE_USER,jdbcType=VARCHAR},
+			</if>
+			<if test="REMARK != null and REMARK != ''">
+				remark = #{REMARK,jdbcType=VARCHAR},
+			</if>
+			<if test="UPLOAD_STATUS != null and UPLOAD_STATUS != ''">
+				UPLOAD_STATUS = #{UPLOAD_STATUS,jdbcType=VARCHAR},
+			</if>
+			update_time = to_char(sysdate,'YYYY-MM-DD HH24:mi:ss')
+		</trim>
+		<choose>
+			<when test="MEETING_ID != null and MEETING_ID != ''">
+				where MEETING_ID = #{MEETING_ID,jdbcType=VARCHAR}
+			</when>
+			<otherwise>
+				where SID = #{SID,jdbcType=VARCHAR} and status='1'
+			</otherwise>
+		</choose>
+	</update>
+
+	<!--批量插入参会人员
+	<insert id="batchInsertAttendee"  parameterType="java.util.List">
+		insert into TIOL_ATTENDEE(
+		ATTENDEE_ID, MEETING_ID,ATTENDEE_NAME,ATTEND_FLAG,REASON) values
+		<foreach collection="list" item="attendee" index="index" separator=",">
+			(
+				#{attendee.attendeeId,jdbcType=VARCHAR},
+				#{attendee.meetingId,jdbcType=VARCHAR},
+				#{attendee.attendeeName,jdbcType=VARCHAR},
+				#{attendee.attendFlag,jdbcType=VARCHAR},
+				#{attendee.reason,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>-->
+	<insert id="batchInsertAttendee"  parameterType="java.util.List">
+		begin
+		<foreach collection="list" item="attendee" index="index">
+			insert into TIOL_ATTENDEE(
+			ATTENDEE_ID, MEETING_ID,ATTENDEE_NAME,ATTEND_FLAG,REASON) values
+			(
+				#{attendee.attendeeId,jdbcType=VARCHAR},
+				#{attendee.meetingId,jdbcType=VARCHAR},
+				#{attendee.attendeeName,jdbcType=VARCHAR},
+				#{attendee.attendFlag,jdbcType=VARCHAR},
+				#{attendee.reason,jdbcType=VARCHAR}
+			);
+		</foreach>
+		end;
+	</insert>
+
+	<select id="queryByDate" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		select *
+		from biz_tiol_meeting
+		where to_char(to_date(meeting_time,'yyyy-mm-dd'),'yyyy-mm-dd') =
+		#{meetingDate,jdbcType=VARCHAR}
+		and meeting_name =
+		#{meetingName,jdbcType=VARCHAR}
+		and company_id =
+		#{companyId,jdbcType=VARCHAR}
+		and status='1'
+
+	</select>
+
+	<select id="getMeetingDetailBySid" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		select *
+		from biz_tiol_meeting
+		where sid = #{sid,jdbcType=VARCHAR}
+		and status='1'
+	</select>
+
+	<insert id="insertMeeting" parameterType="com.zefu.tiol.pojo.Meeting">
+		INSERT INTO BIZ_TIOL_MEETING(FID, MEETING_ID, MEETING_NAME,
+			TYPE_ID, MEETING_TIME, MODERATOR, COMPANY_ID, SUMMARY_FILE_ID,
+			 RECORD_FILE_ID, NOTICE_FILE_ID, STATUS,ALIAS, SID, UPLOAD_STATUS,REGISTER_TYPE)
+		VALUES(
+			#{fid,jdbcType=VARCHAR},
+			#{meetingId,jdbcType=VARCHAR},
+			#{meetingName,jdbcType=VARCHAR},
+			#{typeId,jdbcType=VARCHAR},
+			to_date(#{meetingTime,jdbcType=VARCHAR},'yyyy-mm-dd hh24:mi:ss'),
+			#{moderator,jdbcType=VARCHAR},
+			#{companyId,jdbcType=VARCHAR},
+			#{summaryFileId,jdbcType=VARCHAR},
+			#{recordFileId,jdbcType=VARCHAR},
+			#{noticeFileId,jdbcType=VARCHAR},
+			#{status,jdbcType=VARCHAR},
+			#{alias,jdbcType=VARCHAR},
+			#{sid,jdbcType=VARCHAR},
+			'0',
+			#{registerType,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!--会议信息查询-->
+	<select id="queryMeetingInfo" resultType="map" parameterType="map">
+		select
+		  t.MEETING_ID as meetingId,
+		  t.MEETING_NAME as meetingName,
+		  t.TYPE_ID as typeId,
+		  to_char(t.MEETING_TIME,'yyyy-MM-dd HH24:mm') as meetingTime,
+		  t.COMPANY_ID as companyId,
+		  (select COMPANY_NAME from T_UMS_MGR_COMPANY WHERE COMPANY_ID=t.COMPANY_ID) as companyName,
+		  t.MODERATOR as moderator,
+		  t.NOTICE_FILE_ID as noticeFileId,
+		  (select FILE_NAME from T_FILESYS_FILES where FILE_ID = t.NOTICE_FILE_ID) as noticeFile,
+		  t.SUMMARY_FILE_ID as summaryFileId,
+		  (select FILE_NAME from T_FILESYS_FILES where FILE_ID = t.SUMMARY_FILE_ID) as summaryFile,
+		  to_char((select wm_concat(attendee_name) from tiol_attendee where ATTEND_FLAG='1' and meeting_id = t.MEETING_ID)) as attendeeMember,
+		  t.STATUS as status,
+		  t.UPLOAD_STATUS as uploadStatus
+		from BIZ_TIOL_MEETING t
+		where MEETING_ID=#{meetingId,jdbcType=VARCHAR}
+	</select>
+		
+	<insert id="saveMeeting" parameterType="com.zefu.tiol.pojo.Meeting">
+		insert into
+        BIZ_TIOL_MEETING
+        (
+            FID ,MEETING_ID ,MEETING_NAME ,TYPE_ID ,MEETING_TIME ,MODERATOR ,COMPANY_ID  ,
+            STATUS ,C_CREATERID ,C_CREATEDEPTID ,ALIAS ,UPLOAD_STATUS,REGISTER_TYPE
+        )
+        VALUES
+        (
+            #{fid},#{meetingId},#{meetingName},#{typeId},TO_DATE(#{meetingTime},'yyyy-MM-dd'),#{moderator},#{companyId},
+            1,#{cCreaterid},#{cCreatedeptid},#{alias}, '0', #{registerType,jdbcType=VARCHAR}
+        )
+	</insert>
+	<!--根据会议删除参会人员-->
+	<delete id="deleteAttendeeByMeetingId" parameterType="java.lang.String">
+		delete from TIOL_ATTENDEE where MEETING_ID = #{meetingId}
+	</delete>
+	
+	<select id="queryMeetingAttendee" parameterType="map" resultType="map">
+		select moderator "moderator",attendeeMember "attendeeMember" from (select
+		  t.MODERATOR as moderator,
+          to_char((select wm_concat(attendee_name)
+		  	 from tiol_attendee
+		   where meeting_id = t.MEETING_ID
+		   <if test="attendFlag != null and attendFlag != ''">
+			   and ATTEND_FLAG=1
+		   </if>
+		  )) as attendeeMember
+		from BIZ_TIOL_MEETING t
+		where STATUS='1'
+		<if test="meetingId != null and meetingId != ''">
+			and meeting_id = #{meetingId,jdbcType=VARCHAR}
+		</if>
+		<if test="typeId != null and typeId != ''">
+			and type_id = #{typeId,jdbcType=VARCHAR}
+		</if>
+		order by meeting_time desc) where rownum=1
+	</select>
+
+	<select id="queryMeetingByIds" parameterType="String" resultType="java.util.Map">
+		SELECT M.MEETING_ID,M.MEETING_NAME,T.TYPE_NAME,to_char(M.MEETING_TIME,'yyyy-mm-dd') MEETING_TIME,M.MODERATOR,
+		M.STATUS,M.SUMMARY_FILE_ID,F1.FILE_NAME SUMMARY_FILE_NAME,M.UPLOAD_STATUS,
+		M.NOTICE_FILE_ID, F2.FILE_NAME NOTICE_FILE_NAME
+		 FROM BIZ_TIOL_MEETING_TYPE T,BIZ_TIOL_MEETING M
+		 LEFT JOIN T_FILESYS_FILES F1 ON F1.FILE_ID = M.SUMMARY_FILE_ID
+		 LEFT JOIN T_FILESYS_FILES F2 ON F2.FILE_ID = M.NOTICE_FILE_ID
+		 WHERE M.TYPE_ID=T.TYPE_ID AND M.MEETING_ID IN
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		AND COMPANY_ID = #{companyId}
+	</select>
+	
+	<select id="queryAttendeeList" parameterType="String" resultType="java.util.Map">
+		select * from TIOL_ATTENDEE where MEETING_ID = #{meetingId}
+	</select>
+
+	<select id="queryCompanyMeetingList" resultType="map" parameterType="map">
+		select * from
+			(select t.*, ROWNUM rn
+			from(select tm.MEETING_ID  "meetingId",
+						tm.MEETING_NAME "meetingName",
+						to_char(tm.MEETING_TIME,'yyyy-mm-dd') "meetingTime",
+						tm.TYPE_ID     "typeId",
+						(select TYPE_NAME from BIZ_TIOL_MEETING_TYPE where type_id=tm.TYPE_ID) "typeName",
+						tm.UPDATE_TIME  "updateTime",
+						tm.UPLOAD_STATUS "uploadStatus",
+						tm.REGISTER_TYPE "registerType",
+						tm.STATUS "status"
+				from BIZ_TIOL_MEETING tm where 1=1
+				<if test="typeID != null and typeID != ''">
+					and tm.TYPE_ID = #{typeID, jdbcType=VARCHAR}
+				</if>
+				<if test="registerType != null and registerType != ''">
+					and tm.REGISTER_TYPE = #{registerType, jdbcType=VARCHAR}
+				</if>
+				<if test="uploadStatus != null and uploadStatus != ''">
+					and tm.UPLOAD_STATUS = #{uploadStatus, jdbcType=VARCHAR}
+				</if>
+				<if test="status != null and status != ''">
+					and tm.STATUS = #{status, jdbcType=VARCHAR}
+				</if>
+				<if test="meetingName != null and meetingName != ''">
+					and tm.meeting_name like CONCAT(CONCAT('%',#{meetingName,jdbcType=VARCHAR}),'%')
+				</if>
+				<choose>
+					<when test='isDustbin != null and isDustbin=="1"'>
+						and tm.status = '0' and UPLOAD_STATUS = '1'
+					</when>
+					<otherwise>
+						and (tm.status &lt;&gt; '0' or (tm.status='0' and UPLOAD_STATUS='0'))
+					</otherwise>
+				</choose>
+				<if test="companyId != null and companyId != ''">
+					and tm.company_id = #{companyId, jdbcType=VARCHAR}
+				</if>
+				order by tm.MEETING_TIME desc) t)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow,jdbcType=INTEGER}
+	</select>
+	<select id="countCompanyMeetingList" resultType="int" parameterType="map">
+		select count(MEETING_ID) from BIZ_TIOL_MEETING
+		where 1=1
+		<if test="typeID != null and typeID != ''">
+			and TYPE_ID = #{typeID, jdbcType=VARCHAR}
+		</if>
+		<if test="registerType != null and registerType != ''">
+			and REGISTER_TYPE = #{registerType, jdbcType=VARCHAR}
+		</if>
+		<if test="uploadStatus != null and uploadStatus != ''">
+			and UPLOAD_STATUS = #{uploadStatus, jdbcType=VARCHAR}
+		</if>
+		<if test="status != null and status != ''">
+			and STATUS = #{status, jdbcType=VARCHAR}
+		</if>
+		<if test="meetingName != null and meetingName != ''">
+			and meeting_name like CONCAT(CONCAT('%',#{meetingName,jdbcType=VARCHAR}),'%')
+		</if>
+		<choose>
+			<when test='isDustbin != null and isDustbin=="1"'>
+				and status = '0' and UPLOAD_STATUS = '1'
+			</when>
+			<otherwise>
+				and (status &lt;&gt; '0' or (status='0' and UPLOAD_STATUS='0'))
+			</otherwise>
+		</choose>
+		<if test="companyId != null and companyId != ''">
+			and company_id = #{companyId, jdbcType=VARCHAR}
+		</if>
+	</select>
+
+	<select id="queryMeetingListByIds" parameterType="String" resultType="map">
+		select
+			tm.MEETING_ID  "meetingId",
+			tm.MEETING_NAME "meetingName",
+			to_char(tm.MEETING_TIME,'yyyy-MM-dd HH24:mi:ss') "meetingTime",
+			tm.TYPE_ID     "typeId",
+			(select TYPE_NAME from BIZ_TIOL_MEETING_TYPE where type_id=tm.TYPE_ID) "typeName",
+			tm.UPDATE_TIME  "updateTime",
+			tm.UPLOAD_STATUS "uploadStatus",
+			tm.REGISTER_TYPE "registerType",
+			tm.STATUS "status" from BIZ_TIOL_MEETING tm where tm.meeting_id in
+		<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	<delete id="deleteMeetingById" parameterType="String">
+		delete from BIZ_TIOL_MEETING where MEETING_ID=#{meetingId, jdbcType=VARCHAR}
+	</delete>
+	<update id="updateMeetingStatus" parameterType="map">
+		update
+			BIZ_TIOL_MEETING
+		set UPLOAD_STATUS=#{uploadStatus, jdbcType=VARCHAR},
+			STATUS=#{status, jdbcType=VARCHAR}
+		where MEETING_ID = #{meetingId, jdbcType=VARCHAR}
+	</update>
+	<delete id="deleteSubjectTodoByMeetingId" parameterType="java.lang.String">
+		delete from TIOL_SUBJECT_TODO where MEETING_ID= #{meetingId, jdbcType=VARCHAR}
+	</delete>
+</mapper>
+	

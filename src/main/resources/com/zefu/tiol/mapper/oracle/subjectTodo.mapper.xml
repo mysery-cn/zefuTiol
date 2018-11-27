@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.SubjectTodoMapper">
+    <resultMap id="BaseResultMap" type="com.zefu.tiol.pojo.SubjectTodo">
+        <id column="UUID" property="uuid" jdbcType="VARCHAR"/>
+        <result column="MEETING_ID" property="meetingId" jdbcType="VARCHAR"/>
+        <result column="SUBJECT_ID" property="subjectId" jdbcType="VARCHAR"/>
+        <result column="MEETING_NAME" property="meetingName" jdbcType="VARCHAR"/>
+        <result column="SUBJECT_NAME" property="subjectName" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="CHAR"/>
+        <result column="UPDATE_TIME" property="updateTime" jdbcType="DATE"/>
+        <result column="CREATE_TIME" property="createTime" jdbcType="DATE"/>
+        <result column="SEND_USER_ID" property="sendUserId" jdbcType="VARCHAR"/>
+        <result column="SEND_USER_NAME" property="sendUserName" jdbcType="VARCHAR"/>
+        <result column="RECEIVE_USER_ID" property="receiveUserId" jdbcType="VARCHAR"/>
+        <result column="RECEIVE_USER_NAME" property="receiveUserName" jdbcType="VARCHAR"/>
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR"/>
+        <result column="ITEM_ID" property="itemId" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    UUID, MEETING_ID, SUBJECT_ID, MEETING_NAME, SUBJECT_NAME, STATUS, UPDATE_TIME, CREATE_TIME, SEND_USER_ID,
+    SEND_USER_NAME, RECEIVE_USER_ID, RECEIVE_USER_NAME,ITEM_CODE,ITEM_ID
+  </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from TIOL_SUBJECT_TODO
+        where UUID = #{uuid,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from TIOL_SUBJECT_TODO
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </delete>
+    <insert id="insert" parameterType="com.zefu.tiol.pojo.SubjectTodo">
+    insert into TIOL_SUBJECT_TODO (UUID, MEETING_ID, SUBJECT_ID,
+      MEETING_NAME, SUBJECT_NAME, STATUS,
+      UPDATE_TIME, CREATE_TIME,  SEND_USER_ID, SEND_USER_NAME,
+      RECEIVE_USER_ID, RECEIVE_USER_NAME,ITEM_CODE,ITEM_ID)
+    values (#{uuid,jdbcType=VARCHAR}, #{meetingId,jdbcType=VARCHAR}, #{subjectId,jdbcType=VARCHAR},
+      #{meetingName,jdbcType=VARCHAR}, #{subjectName,jdbcType=VARCHAR}, #{status,jdbcType=CHAR},
+      #{updateTime,jdbcType=DATE}, #{createTime,jdbcType=DATE}, #{sendUserId,jdbcType=VARCHAR}, #{sendUserName,jdbcType=VARCHAR},
+      #{receiveUserId,jdbcType=VARCHAR}, #{receiveUserName,jdbcType=VARCHAR},#{itemCode,jdbcType=VARCHAR}, #{itemId,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="com.zefu.tiol.pojo.SubjectTodo">
+        insert into TIOL_SUBJECT_TODO
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="uuid != null">
+                UUID,
+            </if>
+            <if test="meetingId != null">
+                MEETING_ID,
+            </if>
+            <if test="subjectId != null">
+                SUBJECT_ID,
+            </if>
+            <if test="meetingName != null">
+                MEETING_NAME,
+            </if>
+            <if test="subjectName != null">
+                SUBJECT_NAME,
+            </if>
+            <if test="status != null">
+                STATUS,
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME,
+            </if>
+            <if test="sendUserId != null">
+                SEND_USER_ID,
+            </if>
+            <if test="sendUserName != null">
+                SEND_USER_NAME,
+            </if>
+            <if test="receiveUserId != null">
+                RECEIVE_USER_ID,
+            </if>
+            <if test="receiveUserName != null">
+                RECEIVE_USER_NAME,
+            </if>
+            <if test="itemCode != null">
+                ITEM_CODE,
+            </if>
+            <if test="itemId != null">
+                ITEM_ID,
+            </if>
+            CREATE_TIME,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="uuid != null">
+                #{uuid,jdbcType=VARCHAR},
+            </if>
+            <if test="meetingId != null">
+                #{meetingId,jdbcType=VARCHAR},
+            </if>
+            <if test="subjectId != null">
+                #{subjectId,jdbcType=VARCHAR},
+            </if>
+            <if test="meetingName != null">
+                #{meetingName,jdbcType=VARCHAR},
+            </if>
+            <if test="subjectName != null">
+                #{subjectName,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=CHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=DATE},
+            </if>
+            <if test="sendUserId != null">
+                #{sendUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="sendUserName != null">
+                #{sendUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserId != null">
+                #{receiveUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserName != null">
+                #{receiveUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="itemCode != null">
+                #{itemCode,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId != null">
+                #{itemId,jdbcType=VARCHAR},
+            </if>
+            SYSDATE,
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.zefu.tiol.pojo.SubjectTodo">
+        update TIOL_SUBJECT_TODO
+        <set>
+            <if test="meetingId != null">
+                MEETING_ID = #{meetingId,jdbcType=VARCHAR},
+            </if>
+            <if test="subjectId != null">
+                SUBJECT_ID = #{subjectId,jdbcType=VARCHAR},
+            </if>
+            <if test="meetingName != null">
+                MEETING_NAME = #{meetingName,jdbcType=VARCHAR},
+            </if>
+            <if test="subjectName != null">
+                SUBJECT_NAME = #{subjectName,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                STATUS = #{status,jdbcType=CHAR},
+            </if>
+            <if test="updateTime != null">
+                UPDATE_TIME = #{updateTime,jdbcType=DATE},
+            </if>
+            <if test="sendUserId != null">
+                SEND_USER_ID = #{sendUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="sendUserName != null">
+                SEND_USER_NAME = #{sendUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserId != null">
+                RECEIVE_USER_ID = #{receiveUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="receiveUserName != null">
+                RECEIVE_USER_NAME = #{receiveUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="itemCode != null">
+                ITEM_CODE = #{itemCode,jdbcType=VARCHAR},
+            </if>
+            <if test="itemId != null">
+                ITEM_ID = #{itemId,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where UUID = #{uuid,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.zefu.tiol.pojo.SubjectTodo">
+    update TIOL_SUBJECT_TODO
+    set MEETING_ID = #{meetingId,jdbcType=VARCHAR},
+      SUBJECT_ID = #{subjectId,jdbcType=VARCHAR},
+      MEETING_NAME = #{meetingName,jdbcType=VARCHAR},
+      SUBJECT_NAME = #{subjectName,jdbcType=VARCHAR},
+      STATUS = #{status,jdbcType=CHAR},
+      UPDATE_TIME = #{updateTime,jdbcType=DATE},
+      SEND_USER_ID = #{sendUserId,jdbcType=VARCHAR},
+      SEND_USER_NAME = #{sendUserName,jdbcType=VARCHAR},
+      RECEIVE_USER_ID = #{receiveUserId,jdbcType=VARCHAR},
+      RECEIVE_USER_NAME = #{receiveUserName,jdbcType=VARCHAR},
+      ITEM_CODE = #{itemCode,jdbcType=VARCHAR},
+      ITEM_ID = #{itemId,jdbcType=VARCHAR}
+    where UUID = #{uuid,jdbcType=VARCHAR}
+  </update>
+    <select id="selectByParam" parameterType="map" resultMap="BaseResultMap">
+        select
+          <include refid="Base_Column_List"/>
+        from TIOL_SUBJECT_TODO
+        where 1=1
+        <if test="status != null">
+            AND STATUS=#{status,jdbcType=VARCHAR}
+        </if>
+        <if test="meetingId != null">
+            AND MEETING_ID=#{meetingId,jdbcType=VARCHAR}
+        </if>
+        <if test="meetingName != null">
+            AND MEETING_NAME like CONCAT(CONCAT('%',#{meetingName,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="subjectId != null">
+            AND SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+        </if>
+        <if test="subjectName != null">
+            AND SUBJECT_NAME like CONCAT(CONCAT('%',#{subjectName,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="sendUserId != null">
+            AND SEND_USER_ID=#{sendUserId,jdbcType=VARCHAR}
+        </if>
+        <if test="receiveUserId != null">
+            AND RECEIVE_USER_ID=#{receiveUserId,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <select id="querySubjectPageList" parameterType="map" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from (select t.*,rownum num from (select *
+                from TIOL_SUBJECT_TODO
+                where 1=1
+                <if test="status != null">
+                    AND STATUS=#{status,jdbcType=VARCHAR}
+                </if>
+                <if test="meetingId != null">
+                    AND MEETING_ID=#{meetingId,jdbcType=VARCHAR}
+                </if>
+                <if test="meetingName != null">
+                    AND MEETING_NAME like CONCAT(CONCAT('%',#{meetingName,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="subjectId != null">
+                    AND SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+                </if>
+                <if test="subjectName != null">
+                    AND SUBJECT_NAME like CONCAT(CONCAT('%',#{subjectName,jdbcType=VARCHAR}),'%')
+                </if>
+                <if test="sendUserId != null">
+                    AND SEND_USER_ID=#{sendUserId,jdbcType=VARCHAR}
+                </if>
+                <if test="receiveUserId != null">
+                    AND RECEIVE_USER_ID=#{receiveUserId,jdbcType=VARCHAR}
+                </if> ) t)
+        where num &gt; #{minRow, jdbcType=INTEGER} and num &lt;=#{maxRow, jdbcType=INTEGER}
+    </select>
+    <select id="countSubjectTodo" parameterType="map" resultType="int">
+        select count(MEETING_ID)
+        from TIOL_SUBJECT_TODO
+        where 1=1
+        <if test="status != null">
+            AND STATUS=#{status,jdbcType=VARCHAR}
+        </if>
+        <if test="meetingId != null">
+            AND MEETING_ID=#{meetingId,jdbcType=VARCHAR}
+        </if>
+        <if test="meetingName != null">
+            AND MEETING_NAME like CONCAT(CONCAT('%',#{meetingName,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="subjectId != null">
+            AND SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+        </if>
+        <if test="subjectName != null">
+            AND SUBJECT_NAME like CONCAT(CONCAT('%',#{subjectName,jdbcType=VARCHAR}),'%')
+        </if>
+        <if test="sendUserId != null">
+            AND SEND_USER_ID=#{sendUserId,jdbcType=VARCHAR}
+        </if>
+        <if test="receiveUserId != null">
+            AND RECEIVE_USER_ID=#{receiveUserId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <update id="updateSubjectTodo" parameterType="map">
+        update TIOL_SUBJECT_TODO set STATUS='2',UPDATE_TIME=sysdate where SUBJECT_ID=#{subjectId,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getPersonalTodoCount" parameterType="java.lang.String" resultType="int">
+      select count(UUID) "todoNum" from TIOL_SUBJECT_TODO where STATUS='1' and RECEIVE_USER_ID=#{userId,jdbcType=VARCHAR}
+    </select>
+    <select id="getPersonalDoneCount" parameterType="java.lang.String" resultType="int">
+      select count(UUID) "doneNum" from TIOL_SUBJECT_TODO where STATUS='2' and RECEIVE_USER_ID=#{userId,jdbcType=VARCHAR}
+    </select>
+
+</mapper>
+	

@@ -1,0 +1,421 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zefu.tiol.mapper.oracle.StatisticsItemMapper">
+
+	<select id="queryItemDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select sum(nvl(ti.item_quantity,0)) as "value",
+			   bc.catalog_name as "name",
+			   bc.order_number as "orderby" 
+		from biz_tiol_catalog bc 
+		left join tiol_statistics_item ti 
+		on ti.catalog_id = bc.catalog_id
+		<if test="industryID != null and industryID != ''">
+			and ti.industry_id = #{industryID}
+		</if>
+		<if test="companyId != null and companyId != ''">
+			and ti.company_id = #{companyId}
+		</if>
+		where bc.CATALOG_LEVEL = 1 and bc.status = 1
+		group by ti.catalog_id,bc.catalog_name,bc.order_number
+		order by bc.order_number
+	</select>
+	
+	<select id="queryIndustryItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select t.* from (
+			select p.*,
+			nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重大决策'),0) as "oz",
+			nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重要人事任免'),0) as "tz", 
+			nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重大项目安排'),0) as "trz" ,
+			nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '大额度资金运作'),0) as "od"  ,
+			(
+				nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重大决策'),0) +
+				nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重要人事任免'),0) + 
+				nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '重大项目安排'),0) + 
+				nvl((select sum(item_quantity) from tiol_statistics_item where company_id = p.companyID and catalog_name = '大额度资金运作'),0)
+			) as "all" ,
+			ROWNUM rn
+			from (
+			       select distinct t.company_id companyID,
+			              t.company_short_name companyName,
+			              t.DISPLAY_ORDER
+			       from t_ums_mgr_company t
+			       left join tiol_statistics_item ti on ti.company_id = t.company_id 
+			       where t.inst_id != 'ROOT'
+			       <if test="industryID != null and industryID != ''">
+			     		and t.inst_id = #{industryID, jdbcType=VARCHAR}
+			      	</if>
+			      	<if test="companyName != null and companyName != ''">
+			      		and t.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+			      	</if>
+			       order by t.DISPLAY_ORDER asc
+			) p
+		) t
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	
+	<select id="queryIndustryItemCount" parameterType="java.util.Map" resultType="Integer">
+		select count(distinct t.company_id)
+        from t_ums_mgr_company t
+        left join tiol_statistics_item ti
+        on ti.company_id = t.company_id 
+        where t.inst_id != 'ROOT'
+        <if test="industryID != null and industryID != ''">
+     		and t.inst_id = #{industryID, jdbcType=VARCHAR}
+      	</if>
+      	<if test="companyName != null and companyName != ''">
+      		and t.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+      	</if>
+	</select>
+	
+	<select id="queryMeetingOrder" parameterType="java.util.Map" resultType="String">
+		select nvl(max(n),'暂无') from (
+			select 
+			to_char(
+				wm_concat(CONCAT(CONCAT(tm.order_number, '、'),tmt.type_name))
+				over (order by tm.order_number)) as n,
+			rownum rn
+			from tiol_item_meeting tm
+			left join biz_tiol_meeting_type tmt
+			on tm.type_id = tmt.type_id
+			where tm.item_id = #{itemId}
+			order by tm.order_number asc
+		) 
+	</select>
+	
+	<select id="queryItemListByCatalog" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+			select t.item_name as "itemName",t.item_code as "itemCode",ROWNUM rn,t.item_id as "itemId"
+			from biz_tiol_item t 
+			where t.company_id = #{companyID, jdbcType=VARCHAR}
+			and t.status = 1
+			<if test="(catalogId != null and catalogId != '') and (catalogList == null or catalogList == '')">
+				and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+			</if>
+			<if test="catalogList != null and catalogList != ''">
+				and t.catalog_id in
+				<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+			</if>
+		) m
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	
+	<select id="queryItemListByCatalogCount" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+		from biz_tiol_item t
+		where t.company_id = #{companyID, jdbcType=VARCHAR} and t.status = 1
+			<if test="itemName != null and itemName != ''">
+				and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+			</if>
+			<if test="(catalogId != null and catalogId != '') and (catalogList == null or catalogList == '')">
+				and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+			</if>
+			<if test="catalogList != null and catalogList != ''">
+				and t.catalog_id in
+				<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+	</select>
+	
+	<select id="queryItemSubjectByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (
+			select rownum rn, p.*
+ 			<if test="sql != null and sql != ''">
+			,
+				${sql} as SUMS
+			</if>
+ 			 from (select c.company_id, c.company_short_name,c.display_order
+ 			<if test="typelist != null and typelist.size() > 0">
+				,
+				<foreach collection="typelist" separator="," item="item" index="index">
+					'${item.CATALOG_CODE}' as "typeId${index}",
+					'${item.CATALOG_NAME}' as "typeName${index}",
+			        (select nvl(sum(u.subject_quantity),0) from tiol_statistics_subject u 
+					where u.company_id = c.company_id and u.catalog_id = 
+					#{item.CATALOG_ID,jdbcType=VARCHAR}) as TYPECODE${index}
+		        </foreach>
+	        </if>
+	        from t_ums_mgr_company c
+			left join tiol_statistics_subject s
+			on s.company_id = c.company_id
+			left join biz_tiol_catalog a
+			on s.catalog_id = a.catalog_id
+			and a.catalog_code like 'F%' 
+			and a.catalog_level = 2
+			and a.status = 1
+			where c.inst_level = 2
+            <if test="companyName != null and companyName != ''">
+	    		and (c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+	    		or c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+			</if>
+			<if test="industryId != null and industryId != ''">
+				and c.inst_id = #{industryId, jdbcType=VARCHAR}
+			</if>
+    		group by c.company_id,c.company_short_name,c.display_order
+    		order by c.display_order asc) p)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getItemSubjectCount" parameterType="java.util.Map" resultType="Integer">
+		select count(*) from (
+		select rownum rn, p.*
+			from (select c.company_id, c.company_short_name,c.display_order
+			<if test="typelist != null and typelist.size() > 0">
+			,
+			<foreach collection="typelist" separator="," item="item" index="index">
+				'${item.CATALOG_ID}' as "typeId${index}",
+				'${item.CATALOG_NAME}' as "typeName${index}",
+		        (select nvl(sum(u.subject_quantity),0) from tiol_statistics_subject u 
+				where u.company_id = c.company_id and u.catalog_id = 
+				#{item.TYPE_ID,jdbcType=VARCHAR}) as TYPECODE${index}
+	        </foreach>
+        </if>
+        from t_ums_mgr_company c
+		left join tiol_statistics_subject s
+		on s.company_id = c.company_id
+		left join biz_tiol_catalog a
+		on s.catalog_id = a.catalog_id
+		and a.catalog_code like 'F%' 
+		and a.catalog_level = 2
+		and a.status = 1
+		where c.inst_level = 2
+           <if test="companyName != null and companyName != ''">
+    		and (c.company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+    		or c.company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+		</if>
+		<if test="industryId != null and industryId != ''">
+			and c.inst_id = #{industryId, jdbcType=VARCHAR}
+		</if>
+   		group by c.company_id,c.company_short_name,c.display_order
+   		order by c.display_order asc) p)
+	</select>
+	
+	<select id="queryCatalogSubjectFDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select s.catalog_id, c.catalog_name, sum(s.subject_quantity) as quantity
+		from tiol_statistics_subject s, biz_tiol_catalog c
+		where c.status = 1 and s.catalog_id = c.catalog_id
+		and substr(c.catalog_code ,0 ,1) = 'F'
+		and c.catalog_level = 2 
+		<if test="industryId != null and industryId != ''">
+			and s.industry_id = #{industryId, jdbcType=VARCHAR}
+		</if>
+		group by s.catalog_id, c.catalog_name
+	</select>
+	
+	<select id="queryCatalogItemFDetail" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (select * from (select t.*,rownum RN from (
+		select i.year, concat(i.year,'年') as "nameArray", sum(i.item_quantity) as "quantityArray"
+		from tiol_statistics_item i, biz_tiol_catalog c
+		where c.status = 1 and i.catalog_id = c.catalog_id
+		and substr(c.catalog_code ,0 ,1) = 'F'
+		and c.catalog_level = 1
+		<if test="industryId != null and industryId != ''">
+			and i.industry_id = #{industryId, jdbcType=VARCHAR}
+		</if>
+		group by i.year
+		order by i.year desc) t )
+		where RN &lt;= 4)
+		order by year asc
+	</select>
+	
+	<select id="queryItemMeetingOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+		select tm.item_id as "itemId",nvl(tm.alias,tmt.type_name) as "meetingName"
+		from tiol_item_meeting tm
+		left join biz_tiol_meeting_type tmt	on tm.type_id = tmt.type_id
+		where tm.item_id in (
+			select m.item_id from (
+				select ROWNUM rn,t.item_id
+				from biz_tiol_item t
+				left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+				where t.status = 1
+				<if test="companyID != null and companyID != ''">
+					and t.company_id = #{companyID, jdbcType=VARCHAR}
+				</if>
+				<if test="companyName != null and companyName != ''">
+					and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+				</if>
+				<if test="itemName != null and itemName != ''">
+					and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+				</if>
+				<if test="(catalogId != null and catalogId != '') and (catalogList == null or catalogList == '')">
+					and t.catalog_id = #{catalogId, jdbcType=VARCHAR} 
+				</if>
+				<if test="catalogList != null and catalogList != ''">
+					and t.catalog_id in
+					<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			) m
+			where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+		) order by tm.order_number asc
+	</select>
+	
+	<select id="queryCatalogItemByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from (
+			select rownum rn, p.*
+ 			 from (select t1.company_id,
+                       company_name,
+                       company_short_name,
+                       inst_id,
+                       DISPLAY_ORDER,
+                       t1.catalog_id,
+                       catalog_name,
+                       catalog_code,
+                       nvl(t2.cn, 0) cn
+                  from (select company_id,
+                               company_name,
+                               company_short_name,
+                               inst_id,
+                               DISPLAY_ORDER,
+                               catalog_name,
+                               catalog_id,
+                               catalog_code
+                          from t_ums_mgr_company c, biz_tiol_catalog ta
+                         where ta.status = 1 and c.inst_level = 2
+                           and ta.catalog_code like 'F%'
+                           and ta.catalog_level = 2) t1
+                  left join (select i.company_id, c.catalog_id, count(*) cn
+                              from biz_tiol_item i, biz_tiol_catalog c
+                             where i.status = 1 and c.status = 1 and i.catalog_id = c.catalog_id
+                             group by i.company_id, c.catalog_id) t2
+                    on t1.company_id = t2.company_id
+                   and t1.catalog_id = t2.catalog_id
+	    		<where>
+	    			<if test="companyName != null and companyName != ''">
+		    			and ( company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    			or company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%')
+					</if>
+					<if test="industryId != null and industryId != ''">
+					    and inst_id = #{industryId, jdbcType=VARCHAR}
+					</if>
+	    		</where>
+    		 order by t1.DISPLAY_ORDER, t1.company_id, catalog_code) p)
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+	
+	<select id="getCatalogItemCount" parameterType="java.util.Map" resultType="Integer">
+		select count(*) from (
+			select rownum rn, p.*
+ 			 from (select t1.company_id,
+                       company_name,
+                       company_short_name,
+                       inst_id,
+                       DISPLAY_ORDER,
+                       t1.catalog_id,
+                       catalog_name,
+                       catalog_code,
+                       nvl(t2.cn, 0) cn
+                  from (select company_id,
+                               company_name,
+                               company_short_name,
+                               inst_id,
+                               DISPLAY_ORDER,
+                               catalog_name,
+                               catalog_id,
+                               catalog_code
+                          from t_ums_mgr_company c, biz_tiol_catalog ta
+                         where ta.status = 1 and c.inst_level = 2
+                           and ta.catalog_code like 'F%'
+                           and ta.catalog_level = 2) t1
+                  left join (select i.company_id, c.catalog_id, count(*) cn
+                              from biz_tiol_item i, biz_tiol_catalog c
+                             where i.status = 1 and c.status = 1 and i.catalog_id = c.catalog_id
+                             group by i.company_id, c.catalog_id) t2
+                    on t1.company_id = t2.company_id
+                   and t1.catalog_id = t2.catalog_id
+	    		<where>
+	    			<if test="companyName != null and companyName != ''">
+		    			and (
+		    				company_short_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    				or
+		    				company_name like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		    			)
+					</if>
+					<if test="industryId != null and industryId != ''">
+					    and inst_id = #{industryId, jdbcType=VARCHAR}
+					</if>
+	    		</where>
+    		 order by t1.company_id, catalog_code) p)
+	</select>
+	
+	<select id="listStatisticsItem" resultType="java.util.Map">
+		select statistics_id as "statisticsId",company_id as "companyId",catalog_id as "catalogId",catalog_name as "catalogName",
+		item_quantity as "itemQuantity",industry_id as "industryId",year as "year",statistics_time as "statisticsTime",
+		(select inst_name from t_ums_mgr_inst where inst_id=t.INDUSTRY_ID) as "industryName",
+		(select company_short_name from t_ums_mgr_company where company_id=t.company_id) as "companyName"
+		from TIOL_STATISTICS_ITEM t
+	</select>
+	
+	<select id="queryCatalogChirldId" parameterType="java.util.Map" resultType="String">
+		select c2.catalog_id from BIZ_TIOL_CATALOG c1
+		left join BIZ_TIOL_CATALOG c2 on c1.catalog_id = c2.catalog_pid
+		left join BIZ_TIOL_CATALOG c3 on c2.catalog_id = c3.catalog_pid
+		where c1.catalog_id = #{catalogId} and c1.status = 1
+		  and c2.catalog_id is not null
+		union all
+		
+		select c3.catalog_id from BIZ_TIOL_CATALOG c1
+		left join BIZ_TIOL_CATALOG c2 on c1.catalog_id = c2.catalog_pid
+		left join BIZ_TIOL_CATALOG c3 on c2.catalog_id = c3.catalog_pid
+		where c1.catalog_id = #{catalogId} and c1.status = 1
+		  and c3.catalog_id is not null
+	</select>
+	
+	<select id="queryItemList" parameterType="java.util.Map" resultType="java.util.Map">
+		select m.* from (
+		select t.item_name as "itemName",t.item_code as "itemCode",
+				ROWNUM rn,t.item_id as "itemId",tc.COMPANY_SHORT_NAME as "companyName"
+		from biz_tiol_item t
+		left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+		where t.status = 1 and tc.company_id &lt;&gt; 'GZW'
+		<if test="(catalogId != null and catalogId != '') and (catalogList == null or catalogList == '')">
+			and t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+		</if>
+		<if test="catalogList != null and catalogList != ''">
+			and t.catalog_id in
+			<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="itemName != null and itemName != ''">
+			and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="companyName != null and companyName != ''">
+			and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		</if>
+		) m
+		where rn &gt; #{minRow, jdbcType=INTEGER} and rn &lt;=#{maxRow, jdbcType=INTEGER}
+	</select>
+
+	<select id="queryItemListTotalCount" parameterType="java.util.Map" resultType="Integer">
+		select count(t.item_id)
+		from biz_tiol_item t
+		left join T_UMS_MGR_COMPANY tc on t.COMPANY_ID = tc.COMPANY_ID
+		where t.status = 1 and tc.company_id &lt;&gt; 'GZW'
+		<if test="(catalogId != null and catalogId != '') and (catalogList == null or catalogList == '')">
+			and t.catalog_id = #{catalogId, jdbcType=VARCHAR}
+		</if>
+		<if test="catalogList != null and catalogList != ''">
+			and t.catalog_id in
+			<foreach collection="catalogList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="itemName != null and itemName != ''">
+			and t.item_name like '%'|| #{itemName, jdbcType=VARCHAR} ||'%'
+		</if>
+		<if test="companyName != null and companyName != ''">
+			and tc.COMPANY_SHORT_NAME like '%'|| #{companyName, jdbcType=VARCHAR} ||'%'
+		</if>
+	</select>
+	
+</mapper>
+	
