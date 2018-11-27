@@ -1,0 +1,279 @@
+<?xml version="1.0"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+		 version="2.5">
+	<display-name>oa-sc</display-name>
+	
+	<!--该监听器在服务器启动后和停止前负责log4j的资源使用与回收清理-->
+	<!-- <listener>
+		<listener-class>org.apache.logging.log4j.web.Log4jServletContextListener</listener-class>
+	</listener> -->
+
+    <!-- Spring的配置 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>
+            <!--Gap 平台配置-->
+            classpath:gap-spring.xml;
+            classpath*:com/yr/gap/**/applicationContext-*.xml;
+            <!--二次开发项目Spring配置-->
+            classpath*:applicationContext-*.xml;
+            <!-- 日志服务 -->
+            <!-- classpath*:spring-log.xml; -->
+        </param-value>
+    </context-param>
+    <!--Spring 加载自定义初始化实现-->
+    <context-param>
+        <param-name>contextInitializerClasses</param-name>
+        <param-value>com.yr.gap.common.core.GapSpringApplicationContextInitializer</param-value>
+    </context-param>
+     <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    <listener>
+		<listener-class>org.springframework.web.context.request.RequestContextListener </listener-class>
+	</listener>
+
+    <!-- Spring MVC的配置 -->
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+                classpath*:gap-springmvc.xml;
+                classpath*:spring-oa.xml;
+            </param-value>
+        </init-param>
+        <init-param>
+            <param-name>contextInitializerClasses</param-name>
+            <param-value>com.yr.gap.common.core.GapSpringApplicationContextInitializer</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.action</url-pattern>
+    </servlet-mapping>
+    
+
+	 <!-- 配置日志     logback-->
+     <context-param>
+         <param-name>logbackConfigLocation</param-name>
+         <param-value>classpath:logback.xml</param-value> 
+     </context-param>
+     <!--logback扩展，监听,用于解决与spring的结合 -->
+     <listener>
+         <listener-class>ch.qos.logback.ext.spring.web.LogbackConfigListener</listener-class>
+     </listener>
+
+     
+
+    <!-- 字符集编码过滤器配置 -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>utf-8</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- XssSql过滤器配置 -->
+    <filter>
+        <filter-name>XssSqlFilter</filter-name>
+        <filter-class>com.yr.gap.ums.filter.XssSqlFilter</filter-class>
+        <init-param>
+            <!-- 0表示黑名单，仅仅过滤xssSqlExceptionUrl中的值，系统默认为黑名单 -->
+            <!-- 1表示白名单，xssSqlExceptionUrl中的值被放过 -->
+            <param-name>xssSqlFilterType</param-name>
+            <param-value>0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>xssSqlExceptionUrl</param-name>
+            <param-value>/**/BizData/update.action;</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>XssSqlFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>XssSqlFilter</filter-name>
+        <url-pattern>*.action</url-pattern>
+    </filter-mapping>
+
+
+    <filter>
+        <description>Adds cacheing to content output files.</description>
+        <filter-name>CacheControlFilter</filter-name>
+        <filter-class>com.yr.gap.ums.filter.ReplyHeaderFilter</filter-class>
+        <init-param>
+            <param-name>Cache-Control</param-name>
+            <param-value>public,max-age=14400</param-value>  <!-- 缓存8小时，系统只能晚上升级，第二天生效-->
+        </init-param>
+        <init-param>
+            <param-name>Pragma</param-name>
+            <param-value>public</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CacheControlFilter</filter-name>
+        <url-pattern>*.js</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CacheControlFilter</filter-name>
+        <url-pattern>*.css</url-pattern>
+    </filter-mapping>
+
+
+    <!-- 单点登录过滤器配置 -->
+	<filter>
+        <filter-name>WEBSSOFilter</filter-name>
+        <filter-class>com.yr.gap.ums.filter.GapSsoFilter</filter-class>
+        <init-param>
+            <param-name>exceptionUrl</param-name>
+            <param-value>/**/login.jsp;/**/anonymous/**;/**/Jinlin/**;/**/ukeyauth.action;/**/Scca/**;/**/downLoadExe/**;/**/bindApp/getUserData.action;/**/bindApp/getIsOpenLoginCheck.action;/**/bindApp/VerificationCode.action;/**/Sms/sendSmsCode.action;/**/oa/login/config/loginSubmit.action;/**/sms/msg/**/;/m/**/version/**;/**/tiol/login.action;</param-value>
+        </init-param>
+        <init-param>
+            <param-name>noRedirectUrl</param-name>
+            <param-value>/**/sso/**;/**/wellhope/**;</param-value>
+        </init-param>
+        <init-param>
+            <param-name>appTokenUrl</param-name>
+            <param-value>/**/app/**;</param-value>
+        </init-param>
+        <init-param>
+			<param-name>excludedAction</param-name>
+			<param-value>fsOpenManageServlet;fsTransferServlet;</param-value>
+		</init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>WEBSSOFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>WEBSSOFilter</filter-name>
+        <url-pattern>*.action</url-pattern>
+    </filter-mapping>
+
+    <!-- 权限过滤器配置 -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.yr.gap.ums.filter.AuthFilter</filter-class>
+        <init-param>
+            <param-name>authExceptionUrl</param-name>
+            <param-value>/**/unauth.jsp;/**/login.jsp;/**/sso/**;/**/loginUrl.action;</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>*.action</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>gapServlet</servlet-name>
+        <servlet-class>com.yr.gap.common.web.GapServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>gapServlet</servlet-name>
+        <url-pattern>/gapServlet</url-pattern>
+    </servlet-mapping>
+
+
+   <!-- 三重一大数据权限过滤器end -->
+ 	<filter>
+	<filter-name>tiolDataAuthFilter</filter-name>
+	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	
+	<filter-mapping>
+	<filter-name>tiolDataAuthFilter</filter-name>
+	<url-pattern>*.action</url-pattern>
+	</filter-mapping> 
+
+
+
+
+
+
+    <!--evercookie的Servlet-->
+    <servlet>
+        <servlet-name>evercookieCacheServlet</servlet-name>
+        <servlet-class>com.yr.gap.ums.web.EvercookieCacheServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>evercookieEtagServlet</servlet-name>
+        <servlet-class>com.yr.gap.ums.web.EvercookieEtagServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>evercookiePngServlet</servlet-name>
+        <servlet-class>com.yr.gap.ums.web.EvercookiePngServlet</servlet-class>
+    </servlet>
+    <!--evercookie的Servlet-->
+    <servlet-mapping>
+        <servlet-name>evercookieCacheServlet</servlet-name>
+        <url-pattern>/anonymous/evercookieCacheServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>evercookieEtagServlet</servlet-name>
+        <url-pattern>/anonymous/evercookieEtagServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>evercookiePngServlet</servlet-name>
+        <url-pattern>/anonymous/evercookiePngServlet</url-pattern>
+    </servlet-mapping>
+
+    <!--调度服务客户端需要提供的servlet配置 如下配置不允许修改 start-->
+    <servlet>
+        <servlet-name>hessian</servlet-name>
+        <servlet-class>com.caucho.hessian.server.HessianServlet</servlet-class>
+        <init-param>
+            <param-name>home-api</param-name>
+            <param-value>com.yr.gap.interfaces.schedule.IScheduleService</param-value>
+        </init-param>
+        <init-param>
+            <param-name>home-class</param-name>
+            <param-value>com.yr.gap.schedule.provider.web.ScheduleServiceImplByHessian</param-value>
+        </init-param>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>hessian</servlet-name>
+        <url-pattern>/scheduleServlet</url-pattern>
+    </servlet-mapping>
+    <!--调度服务客户端需要提供的servlet配置 如下配置不允许修改 end-->
+
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/common/500.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/common/500.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/common/404.jsp</location>
+    </error-page>
+
+    <!-- Welcome files -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+</web-app>
