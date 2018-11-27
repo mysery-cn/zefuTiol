@@ -1,0 +1,14 @@
+.add_meetting{background: url(../images/meeting/btn_add.png);width: 20px;height: 20px;cursor: pointer;margin-left: 14px;margin-top: 5px}
+.del_meetting{background: url(../images/meeting/btn_del.png);width: 20px;height: 20px;float: left;cursor: pointer;margin-left: 14px;margin-top: 8px}
+
+select{ border: none;outline: none;width: 100%;height: 24px;line-height: 24px; appearance: none;-webkit-appearance: none; -moz-appearance: none;padding-left: 8px;font-size: 14px;background:url(../images/meeting/select_ico.png) right;background-color :#fff;background-repeat: no-repeat;}
+                                                                                                                                                                              
+.select_diy{text-align: left;border: 1px solid #dfdfdf;width:100%;max-width: 250px;margin: 3px 0px;}
+.fl{float: left;width: 250px;clear: both;}
+
+
+
+.TableEdit .cnt .Input_Select,
+.TableEdit .cnt select{
+	width:100%;
+}

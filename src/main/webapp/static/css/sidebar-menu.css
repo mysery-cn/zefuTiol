@@ -1,0 +1,133 @@
+.main-sidebar {
+	width: 350px;
+	height: 720px;
+	display: block;
+	background: #fff;
+	float: left;
+	background-color: #fff;
+	border-top: 2px solid #417ac0;
+	margin-top: 16px;
+	font-size: 15px;
+	padding-bottom: 24px;
+	overflow: auto;
+}
+
+.sidebar {
+	margin-top: 14px;
+	overflow: auto;
+	height: 720px;
+}
+
+.sidebar-menu {
+	list-style: none;
+	margin-top: 4px;
+	padding: 0;
+	background-color: #fff;
+}
+
+.sidebar-menu>li {
+	position: relative;
+	margin: 0;
+	padding: 0;
+}
+
+.sidebar-menu>li>a {
+	padding: 6px 5px 6px 12px;
+	display: block;
+	border-left: 3px solid transparent;
+	color: #555555;
+	font-size: 15px;
+	font-weight: normal;
+}
+
+.sidebar-menu>li>a>.fa {
+	width: 20px;
+}
+
+.sidebar-menu>li:hover>a, .sidebar-menu>li.active>a {
+	color: #498edb;
+}
+
+.sidebar-menu>li>.treeview-menu {
+	margin: 0 1px;
+	background: #fff;
+}
+
+.sidebar-menu>li .label, .sidebar-menu>li .badge {
+	margin-top: 3px;
+	margin-right: 5px;
+}
+
+.sidebar-menu li.header {
+	padding: 6px 5px 6px 10px;
+	font-size: 15px;
+	color: #4b646f;
+	background: #fff;
+}
+
+.sidebar-menu li>a>.fa-angle-left {
+	width: auto;
+	height: auto;
+	padding: 0;
+	margin-right: 10px;
+	margin-top: 3px;
+}
+
+.sidebar-menu li.active>a>.fa-angle-left {
+	transform: rotate(-90deg);
+}
+
+.sidebar-menu li.active>.treeview-menu {
+	display: block;
+}
+
+.sidebar-menu a {
+	color: #555555;
+	text-decoration: none;
+}
+
+.sidebar-menu .treeview-menu {
+	display: none;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	padding-left: 5px;
+}
+
+.sidebar-menu .treeview-menu .treeview-menu {
+	padding-left: 20px;
+}
+
+.sidebar-menu .treeview-menu>li {
+	margin: 0;
+}
+
+.sidebar-menu .treeview-menu>li>a {
+	padding: 6px 5px 6px 28px;
+	display: block;
+	font-size: 15px;
+	color: #555555;
+}
+
+.sidebar-menu .treeview-menu>li>a>.fa {
+	width: 20px;
+}
+
+.sidebar-menu .treeview-menu>li>a>.fa-angle-left, .sidebar-menu .treeview-menu>li>a>.fa-angle-down
+	{
+	width: auto;
+}
+
+.sidebar-menu .treeview-menu>li.active>a, .sidebar-menu .treeview-menu>li>a:hover
+	{
+	color: #498edb;
+}
+
+i {
+	margin-right: 6px;
+}
+
+.treeview a span {
+	margin-left: -2px;;
+	padding: 0;
+}

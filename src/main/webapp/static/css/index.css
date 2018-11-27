@@ -1,0 +1,1453 @@
+﻿body, html {
+	width: 100%;
+	border: 0;
+	font-family: Times New Roman;
+	background: #f2f2f2;
+	background: #eff4fc !important;
+	background-size: cover;
+	font-size: 14px;
+	color: #292929;
+}
+
+body {
+	position: absolute;
+	max-height: 100%;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+ui, li {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+input, button {
+	border: none;
+	outline: none;
+	padding: 0;
+}
+
+a {
+	text-decoration: none;
+	outline: none;
+}
+
+img {
+	border: none;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+iframe {
+	border: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+h1 {
+	font-size: 30px;
+	font-weight: bold;
+	text-align: center;
+	margin-top: 10px;
+}
+
+#showHide{
+	margin-bottom:5px;
+}
+.measure_main_a{
+margin:auto;
+}
+.industry-choose{
+	font-size:19px;
+	/*margin-right:58px;*/
+}
+.cl {
+	clear: both;
+}
+
+.h10 {
+	height: 10px;
+	width: 100%;
+	clear: both;
+}
+
+.h20 {
+	height: 20px;
+	width: 100%;
+	clear: both;
+}
+
+.h40 {
+	height: 40px;
+	width: 100%;
+	clear: both;
+}
+
+.w12 {
+	width: 10px;
+	height: 100%;
+	clear: both;
+}
+
+.green {
+	color: #2b8a18;
+}
+
+.red {
+	color: #ff3514;
+}
+
+.grey {
+	color: #989898;
+}
+
+.blue {
+	color: #417ac0;
+}
+
+.yellow {
+	color: #ffbc65;
+}
+
+.purple {
+	color: #b568c8;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.table_long_txt {
+	text-align: left !important;
+	padding: 4px 12px !important;
+}
+
+select {
+	border: none;
+	outline: none;
+	width: 100%;
+	height: 24px;
+	line-height: 24px;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	padding-left: 8px;
+}
+
+.select_diy {
+	text-align: left;
+	border: 1px solid #dfdfdf;
+	background: #fff;
+	width:80%;
+}
+/*闂傚倸鍊搁崐鐑芥倿閿曞倸绠栭柛顐ｆ礀绾惧潡鏌熼幆鐗堫棄缁炬儳顭烽弻鐔煎礈瑜忕敮娑㈡煕鐎ｎ亶妯�闁哄被鍔戦幃銈夊磼濞戞﹩浼�*/
+@font-face {
+	font-family: "iconfont";
+	src: url('../font/iconfont.eot'); /* IE9*/
+	src: url('../font/iconfont.eot#iefix') format('embedded-opentype'),
+		/* IE6-IE8 */
+          url('../font/iconfont.woff') format('woff'),
+		/* chrome, firefox */
+          url('../font/iconfont.ttf') format('truetype'),
+		/* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
+          url('../font/iconfont.svg#iconfont') format('svg');
+	/* iOS 4.1- */
+}
+
+.iconfont {
+	font-family: "iconfont" !important;
+	font-size: 16px;
+	font-style: normal;
+	-webkit-font-smoothing: antialiased;
+	-webkit-text-stroke-width: 0.2px;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/*婵犵數濮烽。顔炬閺囥垹纾婚柟杈剧畱绾惧綊鏌￠崶銉ョ仾闁稿顦埞鎴﹀磼濠婂海鍔哥紒鐐劤濞硷繝寮婚妸鈺傚亞闁稿本绋戦锟�*/
+.top_main {
+	height: 64px;
+	width: 100%;
+	background-color: #417ac0;
+	min-width: 1220px;
+	color: #fff
+}
+
+.top_logo {
+	height: 64px;
+	float: left;
+}
+
+.top_logo img {
+	margin-top: 15px;
+	margin-left: 20px;
+}
+
+.top_right {
+	float: right;
+	font-size: 14px;
+	line-height: 64px;
+}
+
+.top_right span {
+	padding: 0px 10px
+}
+
+.top_right a {
+	padding: 0px 20px
+}
+
+.top_right a:hover {
+	color: #fff;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.top_search {
+	width: 240px;
+	height: 28px;
+	background: #fff;
+	float: left;
+	margin-top: 18px;
+	font-size: 14px;
+	margin-right: 40px;
+}
+
+.top_search input.search_txt {
+	width: 204px;
+	height: 28px;
+	right: 25px;
+	border: 0;
+	background: none;
+	background-color: #fff;
+	font-size: 14px;
+	line-height: 32px;
+	padding-left: 4px;
+	float: left;
+}
+
+.top_search input.search_btn {
+	width: 22px;
+	height: 22px;
+	cursor: pointer;
+	border: 0;
+	background-image: url(../images/tiol/btn_search.png);
+	float: right;
+	margin-top: 3px;
+	margin-right: 3px;
+}
+
+.head_img {
+	float: left;
+	margin-top: 16px;
+}
+
+.content_main table tr td {
+	vertical-align: top;
+}
+
+.list_search table tr td {
+	vertical-align: middle;
+}
+/*闂傚倸鍊搁崐鐑芥嚄閸洍锟斤箓宕奸姀鈥冲簥闂佺鎻梽鍕吹瀹�鍕厱闁圭偓顨呴幊鎰版晬濠靛鈷戦柛锔诲幖娴滅偓绻濋敓浠嬫偡閹佃櫕鐓㈠銈呯箰閻楀﹪鎮￠妷鈺傜厽闁哄洨鍋涢敓钘夋贡閿熻姤鐔幏锟�-闂傚倸鍊搁崐椋庣矆娓氾拷楠炲鏁嶉崟顒佹濠德板�曢幊宀勬晸閽樺鏆炵�垫澘瀚伴獮鍥敄閳瑰灝鍔﹂柡灞诲姂閹倝宕掑☉姗嗕紦*/
+.content_main {
+	/*width: 90%;*/
+	margin: 0 auto;
+}
+
+.list_all {
+	width: 100%;
+	background-color: #fff;
+	border-top: 2px solid #417ac0;
+	margin-top: 16px;
+	font-size: 14px;
+	padding-bottom: 16px;
+	overflow: hidden;
+}
+.list_all hr{
+	width:98%;
+	/*margin:16px auto;*/
+	clear:both;
+	display:block;
+}
+
+.list_title p {
+	border-left: 4px solid #417ac0;
+	margin-left: 14px;
+	margin-top: 14px;
+	padding-left: 8px;
+	float: left;
+	font-weight: bold;
+}
+
+.list_title a {
+	float: right;
+	margin-right: 14px;
+	margin-top: 14px;
+	background-image: url(../images/tiol/hide_a.png);
+	width: 90px;
+	height: 26px;
+	line-height: 26px;
+	background-repeat: no-repeat;
+	font-size: 13px;
+	padding-left: 7px;
+}
+
+.list_title a:hover {
+	color: #417ac0;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.list_search {
+	clear: both;
+	margin-top: 50px;
+	margin-left: 16px;
+}
+
+.list_search p {
+	line-height: 24px;
+	height: 24px;
+	text-align: right;
+	width: auto;
+	padding: 0;
+	float: right;
+}
+
+.list_search input {
+	height: 24px;
+	width: 80%;
+	border: 1px solid #bfbfbf;
+	font-size: 14px;
+	line-height: 26px;
+	padding-left: 4px;
+}
+
+.search_inut {
+	float: left;
+}
+
+.list_search table tr {
+	height: 40px;
+
+}
+.list_search table td {
+	margin: 0;
+	padding: 0;
+}
+
+.btn_submit a {
+	background: #417ac0;
+	padding: 4px 18px;
+	font-size: 14px;
+	color: #fff;
+	border-radius: 4px;
+	float: right;
+	cursor: pointer;
+}
+
+.btn_submit a:hover {
+	background: #5991d7;
+}
+
+.btn_reset a {
+	border: 1px solid #417ac0;
+	padding: 4px 18px;
+	font-size: 14px;
+	color: #417ac0;
+	border-radius: 4px;
+	margin-left: 20px;
+	cursor: pointer;
+	line-height: 30px;
+}
+
+.btn_reset a:hover {
+	background: #f3f8ff;
+}
+
+.diy_select {
+	height: 26px;
+	width: 180px;
+	position: relative;
+	font-size: 14px;
+	background: #fff;
+	color: #000;
+	float: left;
+}
+
+.diy_select_btn, .diy_select_txt {
+	float: left;
+	height: 100%;
+	line-height: 26px
+}
+
+.diy_select, .diy_select_list {
+	border: 1px solid #ccc;
+}
+
+.diy_select_txt {
+	width: 166px;
+}
+
+.diy_select_txt, .diy_select_list li {
+	text-indent: 10px;
+	overflow: hidden
+}
+
+.diy_select_btn {
+	width: 8px;
+	background: url(../images/tiol/select_m.png) no-repeat center;
+}
+
+.diy_select_list {
+	position: absolute;
+	top: 27px;
+	left: -1px;
+	z-index: 88888;
+	border-top: none;
+	width: 100%;
+	display: none;
+	background-color: #fff;
+	max-height: 200px;
+	overflow: auto;
+}
+
+.diy_select_list li {
+	list-style: none;
+	height: 28px;
+	line-height: 28px;
+	cursor: default;
+	_background: #fff
+}
+
+.diy_select_list li.focus {
+	background: #3399FF;
+	color: #fff
+}
+
+.yes_or_no {
+	
+}
+
+.yes_or_no a {
+	margin-right: 40px;
+	line-height: 26px;
+	float: left;
+}
+
+.yes_or_no img {
+	margin: 4px;
+	margin-right: 10px;
+	float: left;
+}
+
+background: red;
+	clear: both;
+	display: block;
+}
+.dividing_line {
+	height: 1px;
+	width: 98%;
+	margin: 16px auto;
+	background: #d3d3d3;
+	clear: both;
+	display: block;
+}
+
+.total_num {
+	margin: 0px 0px 12px 12px;
+	width: 160px;
+	display: block;
+	float: left;
+}
+
+.total_num p {
+	font-weight: bold;
+	float: left;
+}
+
+.total_num span {
+	float: left;
+	font-weight: bold;
+}
+
+.no_front {
+	margin: 0px 0px 12px 12px;
+	float: left;
+}
+
+.no_front p {
+	font-weight: bold;
+	float: left;
+}
+
+.no_front span {
+	float: left;
+	font-weight: bold;
+	color: #ff0000;
+}
+
+.list_main {
+	/*width: 96%;*/
+	margin: 0px 20px;
+	/*margin: 0 auto;*/
+    height: 710px;
+	/*border: red 1px solid;*/
+}
+
+
+.meeting_main{
+	width: 96%;
+	margin: 0 auto;
+}
+.meeting_main table tr td {
+	text-align: center;
+	border: 1px solid #dfdfdf;
+	height: 30px;
+	padding: 4px;
+	vertical-align: middle;
+}
+
+.meeting_main table a:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+.table_tr_b {
+	background: #ededed;
+}
+
+.btn_dang {
+	width: 96px;
+	margin: 0 auto;
+}
+
+.btn_normal a {
+	padding: 4px 8px;
+	background: #4fc8a4;
+	color: #fff;
+	margin: 0px 10px;
+	border-radius: 4px;
+	text-decoration: none !important;
+	font-size: 12px;
+	font-weight: bold;
+	float: left;
+}
+
+.btn_normal a:hover {
+	background: #68dfbc;
+}
+
+.btn_abnormal a {
+	padding: 4px 8px;
+	background: #ff6666;
+	color: #fff;
+	margin: 0px 10px;
+	border-radius: 4px;
+	text-decoration: none !important;
+	font-size: 12px;
+	font-weight: bold;
+	float: left;
+}
+
+.btn_abnormal a:hover {
+	background: #ff8686;
+}
+/*婵犵數濮烽弫鍛婃叏閻㈠壊鏁婇柡宥庡幖缁愭淇婇妶蹇斿闁捐崵鍋ら弻娑㈠箛闂堟稒鐏侀梺璺ㄥ枙濡嫰宕愰崸妞硷拷渚�寮撮姀鐘栄囩叓閸ャ劍鐓ユい蹇撳缁辨帡鎮欓浣哄嚒濡炪倧闄勬竟鍡涙晸閼恒儳鍟查柟鍑ゆ嫹*/
+.content_main_left {
+	width: 150px;
+	height: 100%;
+	display: block;
+	background: #fff;
+	float: left;
+	background-color: #fff;
+	border-top: 2px solid #417ac0;
+	margin-top: 16px;
+	font-size: 14px;
+	padding-bottom: 24px;
+}
+.industry_contents-child{
+width:145px;
+}
+.content_main_right {
+	width: 100%;
+}
+.industry_choose{
+	font-size:20px;
+	margin-right:58px;
+}
+.industry_title {
+	font-size: 16px;
+	color: #417ac0;
+	font-weight: bold;
+	/*width: 200px;*/
+	text-align: center;
+	line-height: 44px;
+}
+
+.industry_contents {
+	width: 145px;
+	text-align: center;
+	padding-top:10px;
+	padding-bottom:10px;
+	margin: 0 auto;
+	border-bottom: 1px solid #dfdfdf;
+}
+
+.industry_contents a {
+	font-size: 14px;
+	color: #4c4c4c;
+}
+
+.industry_contents a:hover {
+	font-size: 14px;
+	color: #417ac0;
+	font-weight: bold;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.industry_contents_cur {
+	font-size: 14px;
+	color: #417ac0 !important;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.chart_img_wei {
+	width: 100%;
+	height: 100%;
+	clear: both;
+	margin: 0 auto;
+	padding: 14px;
+	margin-left: -16px;
+}
+
+.chart_img_wei img {
+	max-width: 90%;
+	margin: 0 auto;
+	display: block;
+}
+
+.list_main_com {
+	width: 96%;
+	margin: 0 auto;
+}
+
+.list_main_com table td {
+	text-align: center;
+	border: 1px solid #dfdfdf;
+	height: 36px;
+	padding: 4px;
+	vertical-align: middle !important;
+}
+
+.list_main_content {
+	width: 96%;
+	margin: 0 auto;
+	height: 710px;
+	overflow: hidden;
+}
+
+
+.title_com {
+	font-size: 20px;
+	font-weight: bold;
+	text-align: center;
+	width: 100%;
+	margin: 0 auto;
+	line-height: 54px;
+}
+
+.chart_img_com {
+	width: 90%;
+	height: 100%;
+	clear: both;
+	margin: 0 auto;
+}
+
+.tab_titl {
+	width: 96%;
+	height: 45px;
+	border-bottom: 1px solid #dfdfdf;
+	margin: 0 auto;
+	margin-bottom: 12px;
+	min-width: 510px;
+}
+
+.tab_top_left {
+	float: left;
+}
+
+.tab_top_left a {
+	font-weight: bold;
+	width: 120px;
+	padding: 6px 10px;
+	line-height: 54px;
+}
+
+.tab_top_left a:hover {
+	border-bottom: 3px #417ac0 solid;
+	cursor: pointer;
+	color: #417ac0;
+}
+
+.tab_top_cur {
+	border-bottom: 3px #417ac0 solid;
+	color: #417ac0;
+}
+
+.tab_top_right {
+	float: right;
+	line-height: 54px;
+	font-weight: bold;
+}
+
+.tab_top_right a {
+	color: #ff8d06;
+	cursor: pointer;
+}
+
+.tab_top_right a:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+/*濠电姷鏁告慨鐑藉极閹间礁纾绘繛鎴旀嚍閸ヮ剙绾ф俊顐︽涧閹碱偊鍩為幋鐙呮嫹閿濆懎顣崇紒瀣箲缁绘繈濮�閿濆棛銆愭繝闈涘�归弻銊╁煝娴犲鏁傞柛顐ゅ枔閸欏棝姊虹紒妯荤闁稿﹤婀遍敓鑺ョ啲閹凤拷*/
+.charts_legal table {
+	margin-top: 0px;
+}
+
+.charts_legal table td {
+	padding: 0px;
+}
+
+.charts_legal {
+	text-align: center;
+	padding: 0px;
+	font-size: 14px;
+}
+
+.charts_legal td p {
+	line-height: 24px;
+}
+
+.charts_legal_img {
+	width: 100%;
+	height: 100%;
+	clear: both;
+	margin: 0 auto;
+}
+.charts_legal_div{
+	height: 100px;
+	width: 95%;
+	margin: 0 auto;
+}
+
+/*闂傚倸鍊搁崐鐑芥嚄閸撲椒鐒婇柕濞炬櫅缁狀垰顪冪�ｎ亜顒㈤柛鐘冲姍閺岋絽螖閿熶粙鎮ч崱娆戠當婵﹩鍎悷鎵虫敠闁割煈鍣幏宄扳攽鐎ｎ亞鐣哄┑顔筋殣閹风兘鏌熼鐣岀煉鐎规洖鐖兼俊鎼佸Ψ椤旇崵澶�*/
+.chart_img_gai {
+	width: 100%;
+	height: 100%;
+	clear: both;
+	margin: 0 auto;
+	padding: 14px;
+	margin-left: -16px;
+}
+
+.chart_img_gai img {
+	max-width: 100%;
+	margin: 0 auto;
+	display: block;
+}
+
+/*婵犵數濮烽弫鍛婃叏閻㈠壊鏁婇柡宥庡幖缁愭淇婇妶蹇斿闁捐崵鍋ら弻娑㈠箛闂堟稒鐏侀梺璺ㄥ枙濡嫰宕愰崸妞硷拷渚�寮撮姀鐘栄囩叓閸ャ劍鐓ユい蹇撶埣濮婂搫效閸パ呬紙濠电偘鍖犻崨顔芥闂佸壊鍋呭ú姗�鎮￠弴銏＄厽闁归偊鍨伴惃娲煙閻ｅ苯鈻堥柡灞炬礋瀹曟儼顦叉い蹇ｅ弮閺屸剝鎷呯憴鍕３闂佽桨鐒﹂幑鍥极閹剧粯鏅搁柨鐕傛嫹*/
+.top_add {
+	height: 32px;
+	width: 100%;
+	background: #fff;
+}
+
+.add_main {
+	width: 90%;
+	margin: 0 auto;
+	line-height: 32px;
+	font-size: 14px;
+}
+
+.add_main img {
+	float: left;
+	margin-right: 8px;
+	margin-top: 8px;
+}
+
+.add_main p {
+	float: left;
+	margin-right: 8px;
+}
+
+.add_main a {
+	float: left;
+	margin-right: 8px;
+}
+
+.add_main a:hover {
+	cursor: pointer;
+	color: #417ac0;
+	text-decoration: underline;
+}
+
+.table_expand {
+	height: 48px;
+	background: #ccdaee;
+	font-size: 14px;
+	line-height: 48px;
+	width: 96%;
+	margin: 0 auto;
+	margin-top: 20px;
+}
+
+.table_expand_left {
+	float: left;
+}
+
+.table_expand_left img {
+	float: left;
+	margin: 14px;
+}
+
+.table_expand_left a {
+	text-decoration: underline;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.table_expand_right {
+	float: right;
+}
+
+.table_expand_right p {
+	float: right;
+	font-weight: bold;
+	line-height: 48px;
+}
+
+.table_expand_right img {
+	float: right;
+	margin: 15px 14px 15px 0px;
+}
+
+.vote_subject {
+	float: left;
+	margin-right: 54px;
+}
+
+.decision_process {
+	
+}
+
+.meeting_name_blue {
+	width: 300px;
+	margin: 0 auto;
+	float: left;
+	margin-top: 14px;
+}
+
+.meeting_name_blue a {
+	background: #417ac0;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center;
+	line-height: 32px;
+	width: 220px;
+	margin: 0 auto;
+	clear: both;
+	float: none;
+	padding: 12px;
+	text-decoration: none;
+	height: 32px;
+}
+
+.meeting_name_blue {
+	text-align: center;
+}
+
+.bule_bg_a {
+	background: url(../images/tiol/time_blue_a.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.bule_bg_b {
+	background: url(../images/tiol/time_blue_b.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.bule_bg_c {
+	background: url(../images/tiol/time_blue_c.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.meeting_name_yellow {
+	width: 300px;
+	margin: 0 auto;
+	float: left;
+	margin-top: 14px;
+}
+
+.meeting_name_yellow a {
+	background: #fe9639;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center !important;
+	line-height: 32px;
+	width: 220px;
+	margin: 0 auto !important;
+	clear: both;
+	float: none !important;
+	padding: 12px;
+	height: 32px;
+}
+
+.meeting_name_yellow {
+	text-align: center;
+}
+
+.yellow_bg_a {
+	background: url(../images/tiol/time_yellow_a.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.yellow_bg_b {
+	background: url(../images/tiol/time_yellow_b.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.yellow_bg_c {
+	background: url(../images/tiol/time_yellow_c.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.meeting_name_gray {
+	width: 300px;
+	margin: 0 auto;
+	float: left;
+	margin-top: 14px;
+}
+
+.meeting_name_gray a {
+	background: #b7b7b7;
+	border-radius: 4px;
+	color: #fff;
+	text-align: center !important;
+	line-height: 32px;
+	width: 220px;
+	margin: 0 auto !important;
+	clear: both;
+	float: none !important;
+	padding: 12px;
+	height: 32px;
+}
+
+.meeting_name_gray {
+	text-align: center;
+}
+
+.gray_bg_a {
+	background: url(../images/tiol/time_gray_a.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.gray_bg_b {
+	background: url(../images/tiol/time_gray_b.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.gray_bg_c {
+	background: url(../images/tiol/time_gray_c.png) no-repeat;
+	background-size:100% 16px;
+	width: 100%;
+	height: 16px;
+	margin: 0 auto;
+	display: block;
+	margin-top: 6px;
+}
+
+.meetting_main_left {
+	height:700px;
+	width:150px;
+	display: block;
+	background: #fff;
+	float: left;
+	background-color: #fff;
+	border-top: 2px solid #417ac0;
+	margin-top: 16px;
+	font-size: 14px;
+	padding-bottom: 24px;
+	min-height: 560px;
+	height: auto !important;
+	height: 100%;
+	overflow: hidden !important;
+	overflow: visible;
+}
+
+/*闂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏇氶檷娴滃綊鏌涢幇鍏哥敖闁活厽鎹囬弻鐔虹磼閵忕姵鐏堟俊妤�鎳樺娲箹閻愭彃濮堕梺鍛婃尰閻熝呭垝婵犳碍鎯炴い鎰С缁ㄥ妫呴銏″闁圭顭峰畷鍐裁洪鍛幗闂佺懓鐏濈�氼厾锟芥熬鎷�*/
+.measure_main_bg {
+	width: 100%;
+	height: 100%;
+	background-color: #fff;
+	border-top: 2px solid #417ac0;
+	margin-top: 16px;
+	font-size: 14px;
+}
+
+.measure_main {
+	padding: 10px 0;
+}
+
+.measure_title {
+	font-weight: bold;
+	line-height: 48px;
+	border-bottom: 1px solid #dfdfdf;
+	padding: 0 12px;
+}
+
+.measure_one {
+	border-right: 1px solid #dfdfdf;
+	height: 100px;
+}
+
+.measure_one p {
+	text-align: center;
+	line-height: 36px;
+	font-size: 13px;
+	font-weight: bold;
+}
+
+.measure_main_a {
+	text-align: center;
+	font-weight: bold;
+	font-size: 24px;
+	line-height: 48px;
+	clear: both;
+}
+
+.main_top {
+	width: 100%;
+	background: #dbe9fd;
+	border: 1px solid #cadefa;
+	height: 32px;
+	line-height: 32px;
+}
+
+.main_top p {
+	float: left;
+	text-align: center;
+}
+
+.main_top span {
+	float: left;
+	margin: 0 6px;
+	font-weight: bold;
+	color: #ff9600;
+}
+
+.center_txt {
+	margin: 0 auto;
+	width: 160px;
+}
+
+/*闂傚倸鍊搁崐鐑芥嚄閸洍锟斤箓宕奸姀鈥冲簥闂佸壊鍋侀崕杈╃矆婢跺矉鎷烽獮鍨姎妞わ富鍨跺畷娆撴偐缂佹鍘遍梺閫涘嵆濞佳囧几濞戞氨纾奸柣妯硅濞兼劗绱掔紒妯肩畺缂佺粯绻堝畷鎺戔槈濡椿浠╅梻鍌欒兌椤牓顢栭幋锕�绠柨鐕傛嫹*/
+.search_main {
+	background: #fff;
+	height: auto;
+}
+
+.search_page_big {
+	margin-left: 40px;
+}
+
+.search_input_big {
+	height: 30px;
+	padding: 6px;
+	border: 1px #dfdfdf solid;
+	background: #fff;
+	line-height: 30px;
+	width: 540px;
+	float: left;
+}
+
+.search_input_big input {
+	height: 30px;
+	font-size: 16px;
+	line-height: 30px;
+	width: 540px;
+}
+
+.search_btn_big {
+	height: 30px;
+	padding: 6px 20px;;
+	border: 1px #417ac0 solid;
+	background: #417ac0;
+	line-height: 30px;
+	width: 90px;
+	float: left;
+	text-align: center;
+}
+
+.search_btn_big a {
+	width: 90px;
+	background: #417ac0;
+	color: #fff;
+	line-height: 30px;
+	font-size: 16px;
+	height: 30px;
+	border: 1px #417ac0;
+}
+
+.search_result {
+	clear: both;
+}
+
+.result_one {
+	margin-left: 28px;
+	width: 75%;
+	margin-top: 16px;
+	border-bottom: 1px solid #dfdfdf;
+}
+
+.tab_system {
+	float: left;
+	padding: 0px 8px;
+	line-height: 24px;
+	height: 24px;
+	background: #9d6fbb;
+	color: #fff;
+	border-radius: 4px;
+	clear: both;
+}
+
+.tab_item {
+	float: left;
+	padding: 0px 8px;
+	line-height: 24px;
+	height: 24px;
+	background: #ffbc65;
+	color: #fff;
+	border-radius: 4px;
+	clear: both;
+}
+
+.tab_meeting {
+	float: left;
+	padding: 0px 8px;
+	line-height: 24px;
+	height: 24px;
+	background: #72b476;
+	color: #fff;
+	border-radius: 4px;
+	clear: both;
+}
+
+.tab_issue {
+	float: left;
+	padding: 0px 8px;
+	line-height: 24px;
+	height: 24px;
+	background: #417ac0;
+	color: #fff;
+	border-radius: 4px;
+	clear: both;
+}
+
+.search_title_big {
+	line-height: 24px;
+	padding: 0px 10px;
+	font-size: 24px !important;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	float: left;
+	width: 840px;
+}
+
+.search_title_big a {
+	line-height: 24px;
+	height: 24px;
+	font-size: 18px;
+	font-weight: 400;
+}
+
+.search_title_big a:hover {
+	text-decoration: underline;
+}
+
+.search_tag {
+	clear: both;
+	height: 40px;
+	margin-bottom: 16px;
+}
+
+.search_tag p {
+	line-height: 40px;
+	float: left;
+}
+
+.search_tag a {
+	float: left;
+	line-height: 40px;
+	margin-right: 60px;
+	text-decoration: underline;
+}
+
+.search_tag a:hover {
+	cursor: pointer;
+	color: #417ac0;
+}
+
+/***************闂傚倸鍊搁崐椋庣矆娓氾拷楠炲鏁嶉崟顒佹闂佸湱鍎ら崵锕�鈽夊Ο閿嬫杸闁诲函缍嗛敓绛嬪幑閸庣敻寮婚妸鈺傚亞闁稿本绋戦锟�******************/
+.page {
+	margin: 0 auto;
+	font-weight: bold;
+	color: #4388c6;
+	width: 65%;
+	background: #fff;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.page ul {
+	
+}
+
+.page li {
+	cursor: pointer;
+	float: left;
+	padding: 4px;
+	text-align: center;
+	border: #ccc solid 1px;
+	background-color: #fff;
+	color: #4388c6;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	margin-left: 5px;
+	width: 48px;
+}
+
+.page li.pagehover {
+	cursor: pointer;
+	float: left;
+	padding: 4px;
+	text-align: center;
+	border: #4388c6 solid 1px;
+	color: #4388c6;
+	background-color: #E9F0F8;
+}
+
+.page li:hover {
+	background-color: #E9F0F8;
+}
+
+.page span {
+	display: block;
+	float: left;
+	margin-top: 3px;
+	margin-left: 10px;
+	line-height: 24px;
+}
+
+.page input {
+	width: 26px;
+	margin: 0 5px;
+	border: 1px solid #dfdfdf;
+	height: 20px;
+}
+
+.determine {
+	background-color: #4388c6 !important;
+	color: #FFF;
+	border: 0 !important;
+}
+
+.page li.determine a {
+	color: #FFF;
+}
+
+.tab_border{
+		
+		margin:0 auto;
+		margin-left:70px;
+		margin-top:2px;
+		height:30px;
+		margin-bottom:3px;
+		
+	}
+	.tab_main{
+		cursor:pointer;
+		background:white;
+		width:150px;
+		height:29px;
+		line-height:29px;
+		position: relative;
+		margin:2px;
+		display: inline-block;
+		border-radius: 5px;
+	}
+	.tab_close{
+	   
+	    border-radius: 12px;
+	    line-height: 29px;
+	    text-align: center;
+	    height: 15px;
+	    width: 15px;
+	    font-size: 11px;
+	    padding: 1px;
+	    top: -3px;
+	    right: 0px;
+	    position: absolute;
+	}
+	.tab_close::before {
+    content: "\2716";
+
+	}
+	.tab_font{
+		font-weight:900;
+		width:140px;
+		height:29px;
+		font-size:15px;
+		text-align: center;
+		position: absolute;
+	}
+	.tab_main_font{
+		width:140px;
+		font-size:11px;
+		text-align: center;
+		position: absolute;
+	}
+	
+	
+/*閺嶅洨顒烽弽宄扮础*/
+.tabs_left{
+	width:36px;
+	height:36px;
+	display:inline-block;
+}
+.tabs_all{height: 36px;width: 100%;background: #fff;clear: both;position: relative;font-size: 13px;color: #000;border-bottom: 1px #babcbe solid;}
+/*瀹革箑褰哥粻顓炪仈*/
+.tabs_left a{background: url(../images/tiol/arrow_l_a.png);display: block;height: 36px;width: 36px;background-repeat: no-repeat;float: left;}
+.tabs_left a:hover{background: url(../images/tiol/arrow_l_b.png);cursor: pointer;}
+.tabs_right a{background: url(../images/tiol/arrow_r_a.png);display: block;height: 36px;width: 36px;background-repeat: no-repeat;float: right;}
+.tabs_right a:hover{background: url(../images/tiol/arrow_r_b.png);cursor: pointer;}
+/*瀹革箑褰哥粻顓炪仈娑撳秴褰查悙鐟板毊閻樿埖锟斤拷*/
+.tabs_default_left{background: url(../images/tiol/arrow_l_c.png);cursor: default;}
+.tabs_default_right{background: url(../images/tiol/arrow_r_c.png);display: block;height: 36px;width: 36px;background-repeat: no-repeat;float: right;}
+/*閺嶅洨顒�*/
+.tabs_main{width:94%;width:300px;display:inline-block;margin:0 auto;}
+.tabs_one{height: 32px;width: 150px;display: inline-block; line-height: 32px;float: left;margin-top: 1px;margin-right: 3px;background: url(../images/tiol/tab_bg_b.png);}
+.tabs_one a{margin-left:16px;cursor: pointer;float: left;margin-right: 18px;height: 32px;width: 100px;}
+.tabs_one a:hover{color: #417ac0;}
+.tabs_one_cur{width: 150px; line-height: 32px;float: left;margin-top: 1px;background: url(../images/tiol/tab_bg_a.png);margin-right: 3px;}
+.tabs_one_cur a{margin-left:16px;cursor: pointer;float: left;margin-right: 18px;color: #000;}
+.close_tab{float: right;margin-top: 12px;margin-right: 8px;cursor: pointer;}
+
+
+table.jtGridPar tr td {
+	border: 0px;
+	vertical-align: middle;
+	padding: 0px;
+}
+
+table.jtGridPar {
+	border-left: 1px solid #c8c8c8;
+	border-right: 1px solid #c8c8c8;
+}
+
+table.GridPageTable tr td {
+	text-align:right;
+	border: 0px;
+}
+
+table.jtGridPar tr td.jtGridFoot {
+	border-top: 1px solid #c8c8c8;
+	border-bottom: 1px solid #c8c8c8;
+	height:31px;
+}
+
+table.GridPageTable tr td:first-child {
+	text-align:left;
+}
+
+.GridPageTable select{
+	border: 1px solid #aaaaaa;
+	width: auto;
+	height: 20px;
+	line-height: 20px;
+	appearance: menulist;
+	-webkit-appearance: menulist;
+	-moz-appearance: menulist;
+	padding-left: auto;
+}
+
+/*************浼氳鎸夐挳****************/ 
+.bg_meeting{width:auto;float: left;margin: 0px 0px;}
+.bg_meet_left{display: block;background: url(../images/tiol/btn_met_left.png);width: 6px;height: 32px;background-repeat: no-repeat;float: left;}
+.bg_meet_right{display: block;background: url(../images/tiol/btn_met_right.png);width: 6px;height: 32px;background-repeat: no-repeat;float: left;}
+.meeting_name_bg{background: #e5f4ff;border-top: #60a3e8 1px solid;border-bottom: #60a3e8 3px solid;float: left;height: 28px;line-height: 28px;padding:0px 4px;}
+.meeting_name_bg a{width: 100%;}
+.meetting_line{float: left;background:url(../images/tiol/meeting_line.png);width: 18px;display: block;height: 32px;margin-top: 6px;}
+
+/*************气泡样式？***************/
+.circle{
+	 border-radius: 6px;
+	 width: 12px;
+	 height: 12px;
+	 display: inline-block;
+}

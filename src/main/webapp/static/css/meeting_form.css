@@ -1,0 +1,52 @@
+body,html{border: 0;font-family:微软雅黑;background: #f2f2f2;background: #eff4fc!important; background-size: cover; height: 100%; font-size: 14px; color: #292929;}
+* { margin: 0; padding: 0;}
+ui,li{list-style:none;margin: 0;padding: 0;}
+input,button {border:none;outline:none;padding: 0;}
+a{text-decoration:none; outline: none;}
+img{border: none;}
+table{width:100%;border-collapse:collapse;border-spacing:0; }
+iframe{border: none;margin: 0;padding: 0;overflow: hidden;width: 100%;height: 100%;}
+h1{font-size: 30px;font-weight: bold;text-align: center;margin-top: 10px;}
+select{ border: none;outline: none;width: 100%;height: 24px;line-height: 24px; appearance: none;-webkit-appearance: none; -moz-appearance: none;padding-left: 8px;font-size: 14px;background:url(../images/meeting/select_ico.png) right;background-repeat: no-repeat;}
+.select_diy{text-align: left;border: 1px solid #dfdfdf;background: #fff;font-size: 14px;max-width: 250px;margin: 6px 0px;}
+.fl{float: left;width: 250px;clear: both;}
+
+.form_top{height: 40px;width: 100%;background: #5f95d6;color: #fff;}
+.form_top_btn{float: left;height: 40px;line-height: 40px;margin-left: 14px;}
+.btn_close {width: 100px;height: 40px;background: url(../images/meeting/btn_close.png) 16%;background-repeat: no-repeat;padding: 10px 10px 10px 36px;margin-right: 2px;}
+.btn_save {width: 100px;height: 40px;background: url(../images/meeting/btn_save.png) 16%;background-repeat: no-repeat;padding: 10px 10px 10px 36px;margin-right: 2px;}
+.btn_add1 {width: 100px;height: 40px;background: url(../images/meeting/btn_add1.png) 16%;background-repeat: no-repeat;padding: 10px 10px 10px 36px;margin-right: 2px;}
+.btn_upload {width: 100px;height: 40px;background: url(../images/meeting/btn_upload.png) 16%;background-repeat: no-repeat;padding: 10px 10px 10px 36px;margin-right: 2px;}
+.form_top_btn a:hover{background-color: #568bca;cursor: pointer;}
+.form_top_btn span{float: left;margin-top: 3px;}
+
+.form_main{width: 95%;margin: 0 auto;margin-top: 14px;margin-bottom: 14px; background: #fff;height: auto;padding-bottom: 24px;}
+.form_tittle{height: 38px;background: #fafafa;border-bottom: 2px solid #dfdfdf;padding-left: 14px;}
+.form_tittle p{line-height: 38px;font-size: 16px;font-weight: bold;}
+
+.form_table{padding:0 14px;}
+.form_table table{border: 1px solid #dfdfdf;margin: 14px 0px}
+.form_table td{height: 40px;padding:0 8px;border: 1px solid #dfdfdf}
+.td_name{background: #f7f7f7;width: 120px;text-align: center;}
+.td_input{width: 530px;}
+.form_table a{color: #237dea;cursor: pointer;text-decoration: underline;}
+.form_table input{font-size: 14px;border: 1px solid #dfdfdf;;padding: 4px 0px;width: 100%;}
+.form_table span{margin-left: 8px;margin-right: 20px;}
+.form_table textarea{width:616px;height: 60px;margin: 6px 0px;border: 1px #dfdfdf solid;padding: 6px;font-size: 14px;}
+.meeting_line{width: 100%;background: #6a9cd9;height: 2px; display: block;}
+.btn_add{background: url(../images/meeting/btn_add.png);width: 20px;height: 20px;float: right;cursor: pointer;background-repeat: no-repeat;}
+.btn_add button{width: 20px;height: 20px;border:none;outline:none;padding: 0;background:none;}
+.btn_del{background: url(../images/meeting/btn_del.png);width: 20px;height: 20px;float: right;cursor: pointer;background-repeat: no-repeat;}
+.btn_del button{width: 20px;height: 20px;border:none;outline:none;padding: 0;background:none;}
+.radio_form input{width: 14px;}
+
+.add_meetting{background: url(../images/meeting/btn_add.png);width: 20px;height: 20px;float: left;cursor: pointer;margin-left: 14px;margin-top: 8px}
+.del_meetting{background: url(../images/meeting/btn_del.png);width: 20px;height: 20px;float: left;cursor: pointer;margin-left: 14px;margin-top: 8px}
+.add_issue a{width: 600px;border: 1px solid #6a9cd9;margin: 0 auto;background: url(../images/meeting/add_issue.png)42%;background-repeat: no-repeat;text-align: center;color: #6a9cd9;line-height: 40px;display: block;}
+.add_issue a:hover{cursor: pointer;background-color: #f7fbff;}
+
+.td_things{background: #f7f7f7;width:160px;text-align: center;}
+.radio_form input{border: none;}
+
+
+
