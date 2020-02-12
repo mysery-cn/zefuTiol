@@ -158,7 +158,7 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>5.1.0</version>
+			<version>8.4.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>zookeeper</artifactId>
