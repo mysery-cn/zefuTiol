@@ -223,7 +223,7 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
-			<version>1.2.32</version>
+			<version>1.2.83</version>
 		</dependency>
 		<!--引入包 调用大额资金通道接口时需要 -->
 		<dependency>
